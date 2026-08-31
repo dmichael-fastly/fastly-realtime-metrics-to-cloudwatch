@@ -108,7 +108,7 @@ We provide a wrapper script that automatically packages the Python Lambda depend
     *   `fastly_service_ids`: A comma-separated list of service IDs (e.g., `SU1Z0isxPaozGVKXdv0eY,1xyz2...`).
     *   `poll_interval_seconds`: How often to poll in seconds (e.g., `10`).
 
-*(Alternatively, you can create a `terraform/terraform.tfvars` file to supply these automatically).*
+*(Alternatively, you can copy the provided `terraform/terraform.tfvars.example` file to `terraform/terraform.tfvars` and fill it out to supply these automatically and configure advanced options like Alert Emails).*
 
 ### Teardown
 To cleanly remove all AWS resources (Lambda, IAM roles, EventBridge rules, and Secrets), run:
