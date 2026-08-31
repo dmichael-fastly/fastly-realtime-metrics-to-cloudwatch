@@ -76,17 +76,17 @@ If you specifically want to see sub-minute granularity drawn on your CloudWatch 
 
 *The following estimates assume you are using the **Recommended Setup (~23 metrics)** and are **not** using the AWS Free Tier. If your account qualifies for the Free Tier, your Lambda compute and initial CloudWatch requests will be largely free, bringing these costs down significantly.*
 
-| Polling Interval | `PutMetricData` API Costs | Lambda Compute (128MB) | Base Costs (Metrics, Alarms, Logs) | **Estimated Total Cost / Month** |
+| Polling Interval | `PutMetricData` API Costs | Lambda Compute (256MB) | Base Costs (Metrics, Alarms, Logs) | **Estimated Total Cost / Month** |
 | :--- | :--- | :--- | :--- | :--- |
-| **1 second** | ~$25.92 / mo | ~$4.32 (ARM64 Continuous) | ~$3.00 | **~$33.24 / month** |
-| **5 seconds** | ~$5.18 / mo | ~$4.32 (ARM64 Continuous) | ~$3.00 | **~$12.50 / month** |
-| **10 seconds** | ~$2.59 / mo | ~$4.32 (ARM64 Continuous) | ~$3.00 | **~$9.91 / month** |
-| **20 seconds** | ~$1.30 / mo | ~$4.32 (ARM64 Continuous) | ~$3.00 | **~$8.62 / month** |
-| **30 seconds** | ~$0.86 / mo | ~$4.32 (ARM64 Continuous) | ~$3.00 | **~$8.18 / month** |
-| **60 seconds (Default)** | ~$0.43 / mo | ~$4.32 (ARM64 Continuous) | ~$3.00 | **~$7.75 / month** |
+| **1 second** | ~$25.92 / mo | ~$8.64 (ARM64 Continuous) | ~$3.00 | **~$37.56 / month** |
+| **5 seconds** | ~$5.18 / mo | ~$8.64 (ARM64 Continuous) | ~$3.00 | **~$16.82 / month** |
+| **10 seconds** | ~$2.59 / mo | ~$8.64 (ARM64 Continuous) | ~$3.00 | **~$14.23 / month** |
+| **20 seconds** | ~$1.30 / mo | ~$8.64 (ARM64 Continuous) | ~$3.00 | **~$12.94 / month** |
+| **30 seconds** | ~$0.86 / mo | ~$8.64 (ARM64 Continuous) | ~$3.00 | **~$12.50 / month** |
+| **60 seconds (Default)** | ~$0.43 / mo | ~$0.28 (ARM64 Batched) | ~$3.00 | **~$3.71 / month** |
 
 **Cost Insights:**
-*   **The 60-second drop-off:** Polling at 60 seconds is incredibly cheap (~$4.73/mo) because the Lambda function no longer has to run continuously; it wakes up, runs once, and immediately goes to sleep.
+*   **The 60-second drop-off:** Polling at 60 seconds is incredibly cheap (~$3.71/mo) because the Lambda function no longer has to run continuously; it wakes up, runs once, and immediately goes to sleep.
 *   **The 1-second premium:** Polling at 1-second intervals generates a massive amount of CloudWatch API requests, which becomes the primary cost driver (~$35/mo).
 *   **The sweet spot:** A 10-to-20 second interval provides excellent near real-time resolution for a flat ~$10-12/month.
 
