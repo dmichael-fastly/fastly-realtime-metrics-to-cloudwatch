@@ -1,7 +1,6 @@
 resource "aws_cloudwatch_dashboard" "fastly_metrics" {
   dashboard_name = "Fastly-RealTime-Metrics"
 
-
   dashboard_body = jsonencode({
     variables = [
       {
@@ -9,7 +8,6 @@ resource "aws_cloudwatch_dashboard" "fastly_metrics" {
         type         = "property"
         inputType    = "select"
         visible      = true
-        defaultValue = "__FIRST"
         label        = "Fastly Service"
         populateFrom = "FastlyServiceId"
         search       = "{Fastly/RealTime,FastlyServiceId} MetricName=\"Requests\""
@@ -38,13 +36,12 @@ EOT
         height = 6
         properties = {
           metrics = [
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Requests\"', 'Sum', 60)", id = "reqs" }]
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Requests\"', 'Sum', 60)", id = "reqs" }]
           ]
           view    = "timeSeries"
           stacked = false
           region  = var.aws_region
           title   = "Total Requests (Per Service)"
-          yAxis   = { left = { label = "Count", showUnits = false } }
           period  = 60
         }
       },
@@ -56,14 +53,13 @@ EOT
         height = 6
         properties = {
           metrics = [
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Hits\"', 'Sum', 60)", id = "hits" }],
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Misses\"', 'Sum', 60)", id = "misses" }]
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Hits\"', 'Sum', 60)", id = "hits" }],
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Misses\"', 'Sum', 60)", id = "misses" }]
           ]
           view    = "timeSeries"
           stacked = true
           region  = var.aws_region
           title   = "Cache Hits & Misses"
-          yAxis   = { left = { label = "Count", showUnits = false } }
           period  = 60
         }
       },
@@ -76,8 +72,8 @@ EOT
         properties = {
           metrics = [
             [{ expression = "SUM(hits) / (SUM(hits) + SUM(misses)) * 100", id = "hit_ratio", label = "Hit Ratio %", color = "#2ca02c" }],
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Hits\"', 'Sum', 60)", id = "hits", visible = false }],
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Misses\"', 'Sum', 60)", id = "misses", visible = false }]
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Hits\"', 'Sum', 60)", id = "hits", visible = false }],
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Misses\"', 'Sum', 60)", id = "misses", visible = false }]
           ]
           view    = "timeSeries"
           stacked = false
@@ -95,7 +91,7 @@ EOT
         height = 6
         properties = {
           metrics = [
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Errors\"', 'Sum', 60)", id = "errs", color = "#d62728" }]
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Errors\"', 'Sum', 60)", id = "errs", color = "#d62728" }]
           ]
           view    = "timeSeries"
           stacked = false
@@ -113,8 +109,8 @@ EOT
         properties = {
           metrics = [
             [{ expression = "SUM(errs) / SUM(reqs) * 100", id = "error_rate", label = "Error Rate %", color = "#d62728" }],
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Errors\"', 'Sum', 60)", id = "errs", visible = false }],
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Requests\"', 'Sum', 60)", id = "reqs", visible = false }]
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Errors\"', 'Sum', 60)", id = "errs", visible = false }],
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Requests\"', 'Sum', 60)", id = "reqs", visible = false }]
           ]
           view    = "timeSeries"
           stacked = false
@@ -132,13 +128,13 @@ EOT
         height = 6
         properties = {
           metrics = [
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Bandwidth\"', 'Sum', 60)", id = "bw", label = "Bandwidth ($${PROP(\"Dim.FastlyServiceId\")})" }]
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Resp_body_bytes\"', 'Sum', 60)", id = "body", label = "Body Bytes" }],
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Resp_header_bytes\"', 'Sum', 60)", id = "headers", label = "Header Bytes" }]
           ]
           view    = "timeSeries"
           stacked = true
           region  = var.aws_region
           title   = "Bandwidth Output (Bytes)"
-          yAxis   = { left = { label = "Bytes", showUnits = false } }
           period  = 60
         }
       },
@@ -150,16 +146,15 @@ EOT
         height = 6
         properties = {
           metrics = [
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Status_2xx\"', 'Sum', 60)", id = "m2xx", label = "2xx Success ($${PROP(\"Dim.FastlyServiceId\")})" }],
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Status_3xx\"', 'Sum', 60)", id = "m3xx", label = "3xx Redirection ($${PROP(\"Dim.FastlyServiceId\")})" }],
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Status_4xx\"', 'Sum', 60)", id = "m4xx", label = "4xx Client Error ($${PROP(\"Dim.FastlyServiceId\")})" }],
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Status_5xx\"', 'Sum', 60)", id = "m5xx", label = "5xx Server Error ($${PROP(\"Dim.FastlyServiceId\")})" }]
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Status_2xx\"', 'Sum', 60)", id = "m2xx", label = "2xx Success" }],
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Status_3xx\"', 'Sum', 60)", id = "m3xx", label = "3xx Redirection" }],
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Status_4xx\"', 'Sum', 60)", id = "m4xx", label = "4xx Client Error" }],
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Status_5xx\"', 'Sum', 60)", id = "m5xx", label = "5xx Server Error" }]
           ]
           view    = "timeSeries"
           stacked = true
           region  = var.aws_region
           title   = "HTTP Status Families"
-          yAxis   = { left = { label = "Count", showUnits = false } }
           period  = 60
         }
       },
@@ -171,16 +166,15 @@ EOT
         height = 6
         properties = {
           metrics = [
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Status_400\"', 'Sum', 60)", id = "m400", label = "400 Bad Request ($${PROP(\"Dim.FastlyServiceId\")})" }],
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Status_401\"', 'Sum', 60)", id = "m401", label = "401 Unauthorized ($${PROP(\"Dim.FastlyServiceId\")})" }],
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Status_403\"', 'Sum', 60)", id = "m403", label = "403 Forbidden ($${PROP(\"Dim.FastlyServiceId\")})" }],
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Status_404\"', 'Sum', 60)", id = "m404", label = "404 Not Found ($${PROP(\"Dim.FastlyServiceId\")})" }]
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Status_400\"', 'Sum', 60)", id = "m400", label = "400 Bad Request" }],
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Status_401\"', 'Sum', 60)", id = "m401", label = "401 Unauthorized" }],
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Status_403\"', 'Sum', 60)", id = "m403", label = "403 Forbidden" }],
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Status_404\"', 'Sum', 60)", id = "m404", label = "404 Not Found" }]
           ]
           view    = "timeSeries"
           stacked = true
           region  = var.aws_region
           title   = "4xx Breakdowns"
-          yAxis   = { left = { label = "Count", showUnits = false } }
           period  = 60
         }
       },
@@ -192,16 +186,15 @@ EOT
         height = 6
         properties = {
           metrics = [
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Status_500\"', 'Sum', 60)", id = "m500", label = "500 Internal Server Error ($${PROP(\"Dim.FastlyServiceId\")})" }],
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Status_502\"', 'Sum', 60)", id = "m502", label = "502 Bad Gateway ($${PROP(\"Dim.FastlyServiceId\")})" }],
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Status_503\"', 'Sum', 60)", id = "m503", label = "503 Service Unavailable ($${PROP(\"Dim.FastlyServiceId\")})" }],
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Status_504\"', 'Sum', 60)", id = "m504", label = "504 Gateway Timeout ($${PROP(\"Dim.FastlyServiceId\")})" }]
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Status_500\"', 'Sum', 60)", id = "m500", label = "500 Internal Server Error" }],
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Status_502\"', 'Sum', 60)", id = "m502", label = "502 Bad Gateway" }],
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Status_503\"', 'Sum', 60)", id = "m503", label = "503 Service Unavailable" }],
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Status_504\"', 'Sum', 60)", id = "m504", label = "504 Gateway Timeout" }]
           ]
           view    = "timeSeries"
           stacked = true
           region  = var.aws_region
           title   = "5xx Breakdowns"
-          yAxis   = { left = { label = "Count", showUnits = false } }
           period  = 60
         }
       },
@@ -213,16 +206,15 @@ EOT
         height = 6
         properties = {
           metrics = [
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Compute_request_time_ms\"', 'Sum', 60)", id = "e_crt", label = "Compute Request Time (ms) ($${PROP(\"Dim.FastlyServiceId\")})" }],
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Compute_execution_time_ms\"', 'Sum', 60)", id = "e_cet", label = "Compute Execution Time (ms) ($${PROP(\"Dim.FastlyServiceId\")})" }],
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Miss_time\"', 'Sum', 60)", id = "e_mt", label = "Miss Time ($${PROP(\"Dim.FastlyServiceId\")})" }],
-            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} FastlyServiceId=\"$${ServiceId}\" MetricName=\"Pass_time\"', 'Sum', 60)", id = "e_pt", label = "Pass Time ($${PROP(\"Dim.FastlyServiceId\")})" }]
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Compute_request_time_ms\"', 'Sum', 60)", id = "e_crt", label = "Compute Request Time (ms)" }],
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Compute_execution_time_ms\"', 'Sum', 60)", id = "e_cet", label = "Compute Execution Time (ms)" }],
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Miss_time\"', 'Sum', 60)", id = "e_mt", label = "Miss Time" }],
+            [{ expression = "SEARCH('{Fastly/RealTime,FastlyServiceId} MetricName=\"Pass_time\"', 'Sum', 60)", id = "e_pt", label = "Pass Time" }]
           ]
           view    = "timeSeries"
           stacked = false
           region  = var.aws_region
           title   = "Edge Latency & Processing Times"
-          yAxis   = { left = { label = "Total Time (ms/s)", showUnits = false } }
           period  = 60
         }
       },
