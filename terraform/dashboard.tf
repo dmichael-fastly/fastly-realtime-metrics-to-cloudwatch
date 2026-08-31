@@ -70,7 +70,7 @@ EOT
         height = 6
         properties = {
           metrics = [
-            [{ expression = "SUM(hits) / (SUM(hits) + SUM(misses)) * 100", id = "hit_ratio", label = "Hit Ratio %", color = "#2ca02c" }],
+            [{ expression = "(hits / (hits + misses)) * 100", id = "hit_ratio", label = "Hit Ratio %", color = "#2ca02c" }],
             ["Fastly/RealTime", "Hits", "FastlyServiceId", "$${ServiceId}", { id = "hits", visible = false }],
             ["Fastly/RealTime", "Misses", "FastlyServiceId", "$${ServiceId}", { id = "misses", visible = false }]
           ]
