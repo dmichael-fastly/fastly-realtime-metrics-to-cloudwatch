@@ -31,11 +31,11 @@ resource "aws_cloudwatch_metric_alarm" "high_5xx_rate" {
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 3
   threshold           = 5
-  alarm_description   = "Edge 5xx Server Errors exceed 5% of total requests over the last 3 minutes for service ${each.key}"
+  alarm_description   = "Edge 5xx Server Errors exceed 5% of total requests over the last 3 minutes.\n\nInvestigate in Fastly: https://manage.fastly.com/observability/metrics/service/${each.key}\nView CloudWatch: https://console.aws.amazon.com/cloudwatch/home?region=${var.aws_region}#dashboards/dashboard/Fastly-RealTime-Metrics"
   treat_missing_data  = "notBreaching"
   
   alarm_actions = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
-  ok_actions    = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
+  # ok_actions    = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : [] # Uncomment to receive recovery emails
 
   metric_query {
     id          = "e1"
@@ -83,11 +83,11 @@ resource "aws_cloudwatch_metric_alarm" "zero_traffic" {
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = 5
   threshold           = 1
-  alarm_description   = "Edge traffic has dropped to 0 for the last 5 minutes on service ${each.key}"
+  alarm_description   = "Edge traffic has dropped to 0 for the last 5 minutes.\n\nInvestigate in Fastly: https://manage.fastly.com/observability/metrics/service/${each.key}\nView CloudWatch: https://console.aws.amazon.com/cloudwatch/home?region=${var.aws_region}#dashboards/dashboard/Fastly-RealTime-Metrics"
   treat_missing_data  = "breaching" # Missing data means no traffic!
   
   alarm_actions = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
-  ok_actions    = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
+  # ok_actions    = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : [] # Uncomment to receive recovery emails
 
   metric_name = "Requests"
   namespace   = "Fastly/RealTime"
@@ -113,11 +113,11 @@ resource "aws_cloudwatch_metric_alarm" "high_origin_5xx_rate" {
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 3
   threshold           = 10
-  alarm_description   = "Origin 5xx Server Errors exceed 10% of origin responses over the last 3 minutes for service ${each.key}"
+  alarm_description   = "Origin 5xx Server Errors exceed 10% of origin responses over the last 3 minutes.\n\nInvestigate in Fastly: https://manage.fastly.com/observability/metrics/service/${each.key}\nView CloudWatch: https://console.aws.amazon.com/cloudwatch/home?region=${var.aws_region}#dashboards/dashboard/Fastly-RealTime-Metrics"
   treat_missing_data  = "notBreaching"
   
   alarm_actions = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
-  ok_actions    = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
+  # ok_actions    = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : [] # Uncomment to receive recovery emails
 
   metric_query {
     id          = "e1"
@@ -165,11 +165,11 @@ resource "aws_cloudwatch_metric_alarm" "origin_latency_spike" {
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 3
   threshold           = 100 # Alert if more than 100 requests take > 5s
-  alarm_description   = "More than 100 origin requests experienced > 5 seconds of latency over the last 3 minutes on service ${each.key}"
+  alarm_description   = "More than 100 origin requests experienced > 5 seconds of latency over the last 3 minutes.\n\nInvestigate in Fastly: https://manage.fastly.com/observability/metrics/service/${each.key}\nView CloudWatch: https://console.aws.amazon.com/cloudwatch/home?region=${var.aws_region}#dashboards/dashboard/Fastly-RealTime-Metrics"
   treat_missing_data  = "notBreaching"
   
   alarm_actions = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
-  ok_actions    = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
+  # ok_actions    = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : [] # Uncomment to receive recovery emails
 
   metric_query {
     id          = "e1"
@@ -232,11 +232,11 @@ resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 1
   threshold           = 0
-  alarm_description   = "Alerts if the Fastly metrics polling Lambda function encounters an execution error"
+  alarm_description   = "Alerts if the Fastly metrics polling Lambda function encounters an execution error.\n\nView CloudWatch Logs: https://console.aws.amazon.com/cloudwatch/home?region=${var.aws_region}#logsV2:log-groups/log-group/$252Faws$252Flambda$252Ffastly-realtime-metrics-poller"
   treat_missing_data  = "notBreaching"
 
   alarm_actions = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
-  ok_actions    = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
+  # ok_actions    = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : [] # Uncomment to receive recovery emails
 
   metric_name = "Errors"
   namespace   = "AWS/Lambda"
@@ -259,11 +259,11 @@ resource "aws_cloudwatch_metric_alarm" "traffic_anomaly" {
   comparison_operator = "LessThanLowerOrGreaterThanUpperThreshold"
   evaluation_periods  = 3
   threshold_metric_id = "ad1"
-  alarm_description   = "Machine learning anomaly detection for unexpected Fastly traffic drops or spikes on service ${each.key}"
+  alarm_description   = "Machine learning anomaly detection for unexpected Fastly traffic drops or spikes.\n\nInvestigate in Fastly: https://manage.fastly.com/observability/metrics/service/${each.key}\nView CloudWatch: https://console.aws.amazon.com/cloudwatch/home?region=${var.aws_region}#dashboards/dashboard/Fastly-RealTime-Metrics"
   treat_missing_data  = "missing"
 
   alarm_actions = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
-  ok_actions    = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
+  # ok_actions    = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : [] # Uncomment to receive recovery emails
 
   metric_query {
     id          = "ad1"
