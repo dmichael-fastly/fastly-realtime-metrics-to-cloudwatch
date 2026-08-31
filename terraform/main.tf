@@ -123,7 +123,7 @@ resource "aws_lambda_function" "metrics_poller" {
 
   # The Lambda needs to run for the full minute
   timeout     = 60
-  memory_size = 128
+  memory_size = 256
 
   depends_on = [
     aws_cloudwatch_log_group.lambda_logs
