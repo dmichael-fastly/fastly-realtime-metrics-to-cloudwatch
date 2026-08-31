@@ -115,3 +115,11 @@ To cleanly remove all AWS resources (Lambda, IAM roles, EventBridge rules, and S
 ```bash
 ./teardown.sh
 ```
+
+## License
+
+This project is licensed under the **Apache License 2.0 with the Commons Clause v1.0**.
+
+You are free to download, use, modify, and distribute this software for internal, personal, or academic purposes. However, you **may not sell** the software or provide it as a managed commercial service where its value derives entirely or substantially from the software's functionality. 
+
+See the [LICENSE](LICENSE) file for the full license text.
