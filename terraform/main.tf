@@ -74,17 +74,27 @@ resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
 # -----------------------------------------------------------------------------
 # 3. Lambda Function
 # -----------------------------------------------------------------------------
+resource "aws_cloudwatch_log_group" "lambda_logs" {
+  name              = "/aws/lambda/fastly-realtime-metrics-poller"
+  retention_in_days = 7
+}
+
 resource "aws_lambda_function" "metrics_poller" {
   function_name    = "fastly-realtime-metrics-poller"
   role             = aws_iam_role.lambda_role.arn
   handler          = "lambda_function.lambda_handler"
   runtime          = "python3.12"
+  architectures    = ["arm64"]
   filename         = "${path.module}/../lambda.zip"
   source_code_hash = fileexists("${path.module}/../lambda.zip") ? filebase64sha256("${path.module}/../lambda.zip") : ""
   
   # The Lambda needs to run for the full minute
   timeout          = 60
   memory_size      = 128
+  
+  depends_on = [
+    aws_cloudwatch_log_group.lambda_logs
+  ]
 
   environment {
     variables = {

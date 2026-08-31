@@ -10,10 +10,10 @@ if ! aws sts get-caller-identity > /dev/null 2>&1; then
 fi
 
 # 2. Package the Python Lambda
-echo "📦 Packaging Python Lambda function..."
+echo "📦 Packaging Python Lambda function (Linux ARM64)..."
 rm -rf package lambda.zip
 mkdir -p package
-pip install -r src/requirements.txt -t package/ > /dev/null 2>&1
+pip install --platform manylinux2014_aarch64 --target=package/ --implementation cp --python-version 3.12 --only-binary=:all: --upgrade -r src/requirements.txt > /dev/null 2>&1
 cp src/lambda_function.py package/
 if [ -f "metrics.ini" ]; then
     cp metrics.ini package/
