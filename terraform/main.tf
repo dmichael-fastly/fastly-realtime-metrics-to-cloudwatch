@@ -102,6 +102,7 @@ resource "aws_lambda_function" "metrics_poller" {
       FASTLY_SERVICE_IDS             = var.fastly_service_ids
       POLL_INTERVAL_SECONDS          = tostring(var.poll_interval_seconds)
       ENABLE_HIGH_RESOLUTION_METRICS = tostring(var.enable_high_resolution_metrics)
+      ENABLE_ORIGIN_METRICS          = tostring(var.enable_origin_metrics)
     }
   }
 }

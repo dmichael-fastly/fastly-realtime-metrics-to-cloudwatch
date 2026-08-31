@@ -66,3 +66,9 @@ variable "log_retention_days" {
   type        = number
   default     = 7
 }
+
+variable "enable_origin_metrics" {
+  description = "Enable fetching and pushing Fastly Origin Inspector metrics"
+  type        = bool
+  default     = false
+}

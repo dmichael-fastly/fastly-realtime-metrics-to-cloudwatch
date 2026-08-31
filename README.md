@@ -36,7 +36,7 @@ AWS costs are driven by several factors:
 
 **1. CloudWatch Custom Metrics (Storage):**
 * Cost: $0.30 per metric / month.
-* The default `metrics.ini` configuration explicitly tracks **23 core metrics per Fastly Service** (9 Edge metrics + 14 Origin metrics).
+* The default configuration explicitly tracks **9 core Edge metrics** per Fastly Service (Origin metrics are disabled by default as they require a paid Fastly product).
 * If you uncomment the rest of the file to track all **94 Fastly metrics** provided in the template, it scales to **~$28.20 / month**.
 * *(Note: The Fastly API actually exposes over 130+ metric fields. You can manually add any missing fields to the `metrics.ini` file if you need them).* 
 * Cost for 1 Service (42 default metrics): **$12.60 / month**.
@@ -78,12 +78,12 @@ If you specifically want to see sub-minute granularity drawn on your CloudWatch 
 
 | Polling Interval | `PutMetricData` API Costs | Lambda Compute (128MB) | Base Costs (Metrics, Alarms, Logs) | **Estimated Total Cost / Month** |
 | :--- | :--- | :--- | :--- | :--- |
-| **1 second** | ~$25.92 / mo | ~$4.32 (ARM64 Continuous) | ~$7.70 | **~$37.94 / month** |
-| **5 seconds** | ~$5.18 / mo | ~$4.32 (ARM64 Continuous) | ~$7.70 | **~$17.20 / month** |
-| **10 seconds** | ~$2.59 / mo | ~$4.32 (ARM64 Continuous) | ~$7.70 | **~$14.61 / month** |
-| **20 seconds** | ~$1.30 / mo | ~$4.32 (ARM64 Continuous) | ~$7.70 | **~$13.32 / month** |
-| **30 seconds** | ~$0.86 / mo | ~$4.32 (ARM64 Continuous) | ~$7.70 | **~$12.88 / month** |
-| **60 seconds (Default)** | ~$0.43 / mo | ~$4.32 (ARM64 Continuous) | ~$7.70 | **~$12.45 / month** |
+| **1 second** | ~$25.92 / mo | ~$4.32 (ARM64 Continuous) | ~$3.30 | **~$33.54 / month** |
+| **5 seconds** | ~$5.18 / mo | ~$4.32 (ARM64 Continuous) | ~$3.30 | **~$12.80 / month** |
+| **10 seconds** | ~$2.59 / mo | ~$4.32 (ARM64 Continuous) | ~$3.30 | **~$10.21 / month** |
+| **20 seconds** | ~$1.30 / mo | ~$4.32 (ARM64 Continuous) | ~$3.30 | **~$8.92 / month** |
+| **30 seconds** | ~$0.86 / mo | ~$4.32 (ARM64 Continuous) | ~$3.30 | **~$8.48 / month** |
+| **60 seconds (Default)** | ~$0.43 / mo | ~$4.32 (ARM64 Continuous) | ~$3.30 | **~$8.05 / month** |
 
 **Cost Insights:**
 *   **The 60-second drop-off:** Polling at 60 seconds is incredibly cheap (~$4.73/mo) because the Lambda function no longer has to run continuously; it wakes up, runs once, and immediately goes to sleep.

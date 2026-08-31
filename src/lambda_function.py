@@ -43,13 +43,20 @@ def load_metrics_config() -> Dict[str, Any]:
             'origin': {'enabled': 'false', 'metrics': 'responses'}
         })
         
-    edge_enabled = config.getboolean('edge', 'enabled', fallback=True)
+        edge_enabled = config.getboolean('edge', 'enabled', fallback=True)
+    
+    # Check for environment variable override
+    env_origin = os.environ.get('ENABLE_ORIGIN_METRICS')
+    if env_origin is not None:
+        origin_enabled = env_origin.lower() in ('true', '1', 't', 'yes')
+    else:
+        
     edge_metrics = []
     if edge_enabled:
         edge_metrics.extend([m.strip() for m in config.get('edge', 'metrics', fallback='').split(',') if m.strip()])
         edge_metrics.extend([m.strip() for m in config.get('edge', 'metrics_extra', fallback='').split(',') if m.strip()])
         
-    origin_enabled = config.getboolean('origin', 'enabled', fallback=False)
+    
     origin_metrics = []
     if origin_enabled:
         origin_metrics.extend([m.strip() for m in config.get('origin', 'metrics', fallback='').split(',') if m.strip()])
