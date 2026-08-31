@@ -15,4 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Configurable CloudWatch Alarms:** Pre-configured alarms for Edge 5xx spikes, Edge zero traffic, Origin 5xx spikes, and Origin high latency, with SNS email alerts.
 - **Sub-Minute Polling:** Serverless asynchronous loop running on AWS Lambda triggered by AWS EventBridge Scheduler to fetch data every 5 seconds.
 - **High-Resolution Metrics:** Optional support for pushing 1-second storage resolution metrics to CloudWatch.
+- **Machine Learning Anomaly Detection:** Native CloudWatch ML alarms that automatically learn your Fastly traffic patterns and alert you to unexpected drops or spikes without static thresholds.
+- **System Health Alarms:** Automatically monitors the Lambda poller itself and triggers an SNS alert if AWS execution errors occur.
+- **Log Insights Dashboard:** Embedded CloudWatch Logs Insights widget directly into the Fastly metrics dashboard for instant troubleshooting of pipeline errors.
 - **Intelligent Payload Parsing:** Safely handles Fastly's sparse JSON payloads and accurately flattens host-grouped origin metrics.

@@ -205,7 +205,21 @@ EOT
           title   = "Edge Latency & Processing Times"
           period  = 60
         }
+      },
+      {
+        type   = "log"
+        x      = 0
+        y      = 99
+        width  = 24
+        height = 6
+        properties = {
+          query   = "SOURCE '/aws/lambda/${aws_lambda_function.metrics_poller.function_name}' | fields @timestamp, @message | filter @message like /(?i)error|failed/ | sort @timestamp desc | limit 20"
+          region  = var.aws_region
+          title   = "System Health (Lambda Logs - Errors & Failures)"
+          view    = "table"
+        }
       }
     ]
   })
 }
+

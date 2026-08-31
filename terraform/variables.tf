@@ -48,3 +48,15 @@ variable "enable_alarms_origin" {
   type        = bool
   default     = true
 }
+
+variable "enable_alarms_anomaly" {
+  description = "Enable CloudWatch Machine Learning Anomaly Detection Alarms for traffic drops or spikes"
+  type        = bool
+  default     = true
+}
+
+variable "enable_alarms_system" {
+  description = "Enable System Health Alarms (e.g., Lambda execution errors)"
+  type        = bool
+  default     = true
+}

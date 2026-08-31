@@ -33,6 +33,12 @@ enable_alarms_edge = true
 # Enable default CloudWatch Alarms for Origin Metrics (Latency Spikes, Error Spikes)
 enable_alarms_origin = true
 
+# Enable Machine Learning Alarms for Traffic Anomalies
+enable_alarms_anomaly = true
+
+# Enable System Health Alarms (Lambda execution failures)
+enable_alarms_system = true
+
 # ==============================================================================
 # AWS CONFIGURATION
 # ==============================================================================

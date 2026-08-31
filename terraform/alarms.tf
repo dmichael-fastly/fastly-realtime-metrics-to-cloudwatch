@@ -220,3 +220,69 @@ resource "aws_cloudwatch_metric_alarm" "origin_latency_spike" {
     return_data = false
   }
 }
+
+# ==============================================================================
+# SYSTEM HEALTH ALARMS
+# ==============================================================================
+
+resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
+  count = var.enable_alarms_system ? 1 : 0
+
+  alarm_name          = "Fastly-Metrics-Poller-Errors"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  threshold           = 0
+  alarm_description   = "Alerts if the Fastly metrics polling Lambda function encounters an execution error"
+  treat_missing_data  = "notBreaching"
+
+  alarm_actions = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
+  ok_actions    = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
+
+  metric_name = "Errors"
+  namespace   = "AWS/Lambda"
+  period      = 60
+  statistic   = "Sum"
+
+  dimensions = {
+    FunctionName = aws_lambda_function.metrics_poller.function_name
+  }
+}
+
+# ==============================================================================
+# ANOMALY DETECTION ALARMS
+# ==============================================================================
+
+resource "aws_cloudwatch_metric_alarm" "traffic_anomaly" {
+  for_each = var.enable_alarms_anomaly ? toset(local.service_ids) : toset([])
+
+  alarm_name          = "Fastly-Edge-Traffic-Anomaly-${each.key}"
+  comparison_operator = "LessThanLowerOrGreaterThanUpperThreshold"
+  evaluation_periods  = 3
+  threshold_metric_id = "ad1"
+  alarm_description   = "Machine learning anomaly detection for unexpected Fastly traffic drops or spikes on service ${each.key}"
+  treat_missing_data  = "missing"
+
+  alarm_actions = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
+  ok_actions    = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
+
+  metric_query {
+    id          = "ad1"
+    expression  = "ANOMALY_DETECTION_BAND(m1, 3)"
+    label       = "Requests (Expected)"
+    return_data = true
+  }
+
+  metric_query {
+    id = "m1"
+    return_data = true
+    metric {
+      metric_name = "Requests"
+      namespace   = "Fastly/RealTime"
+      period      = 60
+      stat        = "Sum"
+      dimensions = {
+        FastlyServiceId = each.key
+      }
+    }
+  }
+}
