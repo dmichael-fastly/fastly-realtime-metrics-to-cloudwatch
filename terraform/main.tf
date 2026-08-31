@@ -27,7 +27,7 @@ data "http" "fastly_services" {
 
 locals {
   service_map = {
-    for id in local.service_ids : id => jsondecode(data.http.fastly_services[id].response_body).name
+    for id in local.service_ids : id => "${jsondecode(data.http.fastly_services[id].response_body).name} (${id})"
   }
 }
 
