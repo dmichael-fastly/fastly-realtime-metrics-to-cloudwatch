@@ -76,7 +76,7 @@ resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
 # -----------------------------------------------------------------------------
 resource "aws_cloudwatch_log_group" "lambda_logs" {
   name              = "/aws/lambda/fastly-realtime-metrics-poller"
-  retention_in_days = 7
+  retention_in_days = var.log_retention_days
 }
 
 resource "aws_lambda_function" "metrics_poller" {

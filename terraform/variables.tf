@@ -60,3 +60,9 @@ variable "enable_alarms_system" {
   type        = bool
   default     = true
 }
+
+variable "log_retention_days" {
+  description = "Number of days to keep CloudWatch Logs for the Lambda function"
+  type        = number
+  default     = 7
+}

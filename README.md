@@ -32,11 +32,11 @@ You can control exactly which metrics are fetched and pushed to CloudWatch by ed
 
 The cost of running this project depends heavily on your configured `POLL_INTERVAL_SECONDS`.
 
-AWS costs are driven by three main factors:
+AWS costs are driven by several factors:
 
 **1. CloudWatch Custom Metrics (Storage):**
 * Cost: $0.30 per metric / month.
-* By default, this project tracks ~42 metrics **per Fastly Service** (Edge + Origin combined), but supports up to 130+ configurable metrics via `metrics.ini`.
+* By default, this project tracks precisely 42 metrics **per Fastly Service** (23 Edge + 19 Origin), but supports up to 130+ configurable metrics via `metrics.ini`.
 * Cost for 1 Service (42 metrics): **$12.60 / month**.
 * Cost for 5 Services (42 metrics): **$63.00 / month**.
 * Cost for 10 Services (42 metrics): **$126.00 / month**.
@@ -72,16 +72,16 @@ If you specifically want to see sub-minute granularity drawn on your CloudWatch 
 
 ### Estimated Monthly Costs by Polling Interval
 
-*The following estimates assume you are **not** using the AWS Free Tier. If your account qualifies for the Free Tier, your Lambda compute and initial CloudWatch requests will be largely free, bringing these costs down significantly.*
+*The following estimates assume you are using the **Recommended Setup (~22 metrics)** and are **not** using the AWS Free Tier. If your account qualifies for the Free Tier, your Lambda compute and initial CloudWatch requests will be largely free, bringing these costs down significantly.*
 
-| Polling Interval | `PutMetricData` API Costs | Lambda Compute (128MB) | Base Costs (Metrics, Secrets, Logs) | **Estimated Total Cost / Month** |
+| Polling Interval | `PutMetricData` API Costs | Lambda Compute (128MB) | Base Costs (Metrics, Alarms, Logs) | **Estimated Total Cost / Month** |
 | :--- | :--- | :--- | :--- | :--- |
-| **1 second** | ~$25.92 / mo (2.59M reqs) | ~$5.40 (Continuous) | ~$4.12 | **~$35.44 / month** |
-| **5 seconds** | ~$5.18 / mo (518K reqs) | ~$5.40 (Continuous) | ~$4.12 | **~$14.70 / month** |
-| **10 seconds** | ~$2.59 / mo (259K reqs) | ~$5.40 (Continuous) | ~$4.12 | **~$12.11 / month** |
-| **20 seconds** | ~$1.30 / mo (130K reqs) | ~$5.40 (Continuous) | ~$4.12 | **~$10.82 / month** |
-| **30 seconds** | ~$0.86 / mo (86K reqs) | ~$5.40 (Continuous) | ~$4.12 | **~$10.38 / month** |
-| **60 seconds** | ~$0.43 / mo (43K reqs) | ~$0.18 (Runs 2s/min) | ~$4.12 | **~$4.73 / month** |
+| **1 second** | ~$25.92 / mo | ~$4.32 (ARM64 Continuous) | ~$13.40 | **~$43.64 / month** |
+| **5 seconds** | ~$5.18 / mo | ~$4.32 (ARM64 Continuous) | ~$13.40 | **~$22.90 / month** |
+| **10 seconds** | ~$2.59 / mo | ~$4.32 (ARM64 Continuous) | ~$13.40 | **~$20.31 / month** |
+| **20 seconds** | ~$1.30 / mo | ~$4.32 (ARM64 Continuous) | ~$13.40 | **~$19.02 / month** |
+| **30 seconds** | ~$0.86 / mo | ~$4.32 (ARM64 Continuous) | ~$13.40 | **~$18.58 / month** |
+| **60 seconds (Default)** | ~$0.43 / mo | ~$4.32 (ARM64 Continuous) | ~$13.40 | **~$18.15 / month** |
 
 **Cost Insights:**
 *   **The 60-second drop-off:** Polling at 60 seconds is incredibly cheap (~$4.73/mo) because the Lambda function no longer has to run continuously; it wakes up, runs once, and immediately goes to sleep.
@@ -103,7 +103,7 @@ We provide a wrapper script that automatically packages the Python Lambda depend
     ```bash
     ./deploy.sh
     ```
-2.  Terraform will prompt you for three values:
+2.  Terraform will prompt you for the required values (or you can set them in `terraform/terraform.tfvars`):
     *   `fastly_api_key`: Your Fastly API token.
     *   `fastly_service_ids`: A comma-separated list of service IDs (e.g., `SU1Z0isxPaozGVKXdv0eY,1xyz2...`).
     *   `poll_interval_seconds`: How often to poll in seconds (e.g., `10`).
