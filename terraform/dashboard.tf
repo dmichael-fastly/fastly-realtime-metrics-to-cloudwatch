@@ -35,7 +35,7 @@ EOT
         height = 6
         properties = {
           metrics = [
-            ["Fastly/RealTime", "Requests", "FastlyServiceId", "$${ServiceId}", { id = "reqs" }]
+            ["Fastly/RealTime", "Requests", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "reqs" }]
           ]
           view    = "timeSeries"
           stacked = false
@@ -52,8 +52,8 @@ EOT
         height = 6
         properties = {
           metrics = [
-            ["Fastly/RealTime", "Hits", "FastlyServiceId", "$${ServiceId}", { id = "hits" }],
-            ["Fastly/RealTime", "Misses", "FastlyServiceId", "$${ServiceId}", { id = "misses" }]
+            ["Fastly/RealTime", "Hits", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "hits" }],
+            ["Fastly/RealTime", "Misses", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "misses" }]
           ]
           view    = "timeSeries"
           stacked = true
@@ -71,8 +71,8 @@ EOT
         properties = {
           metrics = [
             [{ expression = "(hits / (hits + misses)) * 100", id = "hit_ratio", label = "Hit Ratio %", color = "#2ca02c" }],
-            ["Fastly/RealTime", "Hits", "FastlyServiceId", "$${ServiceId}", { id = "hits", visible = false }],
-            ["Fastly/RealTime", "Misses", "FastlyServiceId", "$${ServiceId}", { id = "misses", visible = false }]
+            ["Fastly/RealTime", "Hits", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "hits", visible = false }],
+            ["Fastly/RealTime", "Misses", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "misses", visible = false }]
           ]
           view    = "timeSeries"
           stacked = false
@@ -90,7 +90,7 @@ EOT
         height = 6
         properties = {
           metrics = [
-            ["Fastly/RealTime", "Errors", "FastlyServiceId", "$${ServiceId}", { id = "errs", color = "#d62728" }]
+            ["Fastly/RealTime", "Errors", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "errs", color = "#d62728" }]
           ]
           view    = "timeSeries"
           stacked = false
@@ -108,8 +108,8 @@ EOT
         properties = {
           metrics = [
             [{ expression = "SUM(errs) / SUM(reqs) * 100", id = "error_rate", label = "Error Rate %", color = "#d62728" }],
-            ["Fastly/RealTime", "Errors", "FastlyServiceId", "$${ServiceId}", { id = "errs", visible = false }],
-            ["Fastly/RealTime", "Requests", "FastlyServiceId", "$${ServiceId}", { id = "reqs", visible = false }]
+            ["Fastly/RealTime", "Errors", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "errs", visible = false }],
+            ["Fastly/RealTime", "Requests", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "reqs", visible = false }]
           ]
           view    = "timeSeries"
           stacked = false
@@ -127,8 +127,8 @@ EOT
         height = 6
         properties = {
           metrics = [
-            ["Fastly/RealTime", "Resp_body_bytes", "FastlyServiceId", "$${ServiceId}", { id = "body", label = "Body Bytes ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/RealTime", "Resp_header_bytes", "FastlyServiceId", "$${ServiceId}", { id = "headers", label = "Header Bytes ($${PROP(\"FastlyServiceId\")})" }]
+            ["Fastly/RealTime", "Resp_body_bytes", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "body", label = "Body Bytes ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "Resp_header_bytes", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "headers", label = "Header Bytes ($${PROP(\"FastlyServiceId\")})" }]
           ]
           view    = "timeSeries"
           stacked = true
@@ -145,10 +145,10 @@ EOT
         height = 6
         properties = {
           metrics = [
-            ["Fastly/RealTime", "Status_2xx", "FastlyServiceId", "$${ServiceId}", { id = "m2xx", label = "2xx Success ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/RealTime", "Status_3xx", "FastlyServiceId", "$${ServiceId}", { id = "m3xx", label = "3xx Redirection ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/RealTime", "Status_4xx", "FastlyServiceId", "$${ServiceId}", { id = "m4xx", label = "4xx Client Error ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/RealTime", "Status_5xx", "FastlyServiceId", "$${ServiceId}", { id = "m5xx", label = "5xx Server Error ($${PROP(\"FastlyServiceId\")})" }]
+            ["Fastly/RealTime", "Status_2xx", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m2xx", label = "2xx Success ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "Status_3xx", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m3xx", label = "3xx Redirection ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "Status_4xx", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m4xx", label = "4xx Client Error ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "Status_5xx", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m5xx", label = "5xx Server Error ($${PROP(\"FastlyServiceId\")})" }]
           ]
           view    = "timeSeries"
           stacked = true
@@ -165,10 +165,10 @@ EOT
         height = 6
         properties = {
           metrics = [
-            ["Fastly/RealTime", "Status_400", "FastlyServiceId", "$${ServiceId}", { id = "m400", label = "400 Bad Request ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/RealTime", "Status_401", "FastlyServiceId", "$${ServiceId}", { id = "m401", label = "401 Unauthorized ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/RealTime", "Status_403", "FastlyServiceId", "$${ServiceId}", { id = "m403", label = "403 Forbidden ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/RealTime", "Status_404", "FastlyServiceId", "$${ServiceId}", { id = "m404", label = "404 Not Found ($${PROP(\"FastlyServiceId\")})" }]
+            ["Fastly/RealTime", "Status_400", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m400", label = "400 Bad Request ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "Status_401", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m401", label = "401 Unauthorized ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "Status_403", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m403", label = "403 Forbidden ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "Status_404", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m404", label = "404 Not Found ($${PROP(\"FastlyServiceId\")})" }]
           ]
           view    = "timeSeries"
           stacked = true
@@ -185,10 +185,10 @@ EOT
         height = 6
         properties = {
           metrics = [
-            ["Fastly/RealTime", "Status_500", "FastlyServiceId", "$${ServiceId}", { id = "m500", label = "500 Internal Server Error ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/RealTime", "Status_502", "FastlyServiceId", "$${ServiceId}", { id = "m502", label = "502 Bad Gateway ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/RealTime", "Status_503", "FastlyServiceId", "$${ServiceId}", { id = "m503", label = "503 Service Unavailable ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/RealTime", "Status_504", "FastlyServiceId", "$${ServiceId}", { id = "m504", label = "504 Gateway Timeout ($${PROP(\"FastlyServiceId\")})" }]
+            ["Fastly/RealTime", "Status_500", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m500", label = "500 Internal Server Error ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "Status_502", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m502", label = "502 Bad Gateway ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "Status_503", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m503", label = "503 Service Unavailable ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "Status_504", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m504", label = "504 Gateway Timeout ($${PROP(\"FastlyServiceId\")})" }]
           ]
           view    = "timeSeries"
           stacked = true
@@ -205,10 +205,10 @@ EOT
         height = 6
         properties = {
           metrics = [
-            ["Fastly/RealTime", "Compute_request_time_ms", "FastlyServiceId", "$${ServiceId}", { id = "e_crt", label = "Compute Request Time (ms) ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/RealTime", "Compute_execution_time_ms", "FastlyServiceId", "$${ServiceId}", { id = "e_cet", label = "Compute Execution Time (ms) ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/RealTime", "Miss_time", "FastlyServiceId", "$${ServiceId}", { id = "e_mt", label = "Miss Time ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/RealTime", "Pass_time", "FastlyServiceId", "$${ServiceId}", { id = "e_pt", label = "Pass Time ($${PROP(\"FastlyServiceId\")})" }]
+            ["Fastly/RealTime", "Compute_request_time_ms", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "e_crt", label = "Compute Request Time (ms) ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "Compute_execution_time_ms", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "e_cet", label = "Compute Execution Time (ms) ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "Miss_time", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "e_mt", label = "Miss Time ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "Pass_time", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "e_pt", label = "Pass Time ($${PROP(\"FastlyServiceId\")})" }]
           ]
           view    = "timeSeries"
           stacked = false
