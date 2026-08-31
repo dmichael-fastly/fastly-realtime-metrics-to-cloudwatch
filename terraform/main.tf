@@ -1,3 +1,36 @@
+
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+    }
+    http = {
+      source  = "hashicorp/http"
+      version = "~> 3.4"
+    }
+  }
+}
+
+locals {
+  service_ids = compact([for s in split(",", var.fastly_service_ids) : trimspace(s)])
+}
+
+data "http" "fastly_services" {
+  for_each = toset(local.service_ids)
+
+  url = "https://api.fastly.com/service/${each.key}"
+  request_headers = {
+    Fastly-Key = var.fastly_api_key
+    Accept     = "application/json"
+  }
+}
+
+locals {
+  service_map = {
+    for id in local.service_ids : id => jsondecode(data.http.fastly_services[id].response_body).name
+  }
+}
+
 provider "aws" {
   region = var.aws_region
 }
@@ -49,12 +82,12 @@ data "aws_iam_policy_document" "lambda_policy" {
   statement {
     actions   = ["cloudwatch:PutMetricData"]
     resources = ["*"]
-    
+
     condition {
       test     = "StringEquals"
       variable = "cloudwatch:namespace"
-      values   = [
-        "Fastly/RealTime", 
+      values = [
+        "Fastly/RealTime",
         "Fastly/OriginInspector"
       ]
     }
@@ -87,11 +120,11 @@ resource "aws_lambda_function" "metrics_poller" {
   architectures    = ["arm64"]
   filename         = "${path.module}/../lambda.zip"
   source_code_hash = fileexists("${path.module}/../lambda.zip") ? filebase64sha256("${path.module}/../lambda.zip") : ""
-  
+
   # The Lambda needs to run for the full minute
-  timeout          = 60
-  memory_size      = 128
-  
+  timeout     = 60
+  memory_size = 128
+
   depends_on = [
     aws_cloudwatch_log_group.lambda_logs
   ]
@@ -99,7 +132,7 @@ resource "aws_lambda_function" "metrics_poller" {
   environment {
     variables = {
       SECRET_ARN                     = aws_secretsmanager_secret.fastly_api_key.arn
-      FASTLY_SERVICE_IDS             = join(",", keys(var.fastly_service_ids))
+      FASTLY_SERVICE_IDS             = var.fastly_service_ids
       POLL_INTERVAL_SECONDS          = tostring(var.poll_interval_seconds)
       ENABLE_HIGH_RESOLUTION_METRICS = tostring(var.enable_high_resolution_metrics)
     }

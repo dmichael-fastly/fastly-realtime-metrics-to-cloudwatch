@@ -4,13 +4,13 @@ resource "aws_cloudwatch_dashboard" "fastly_origin_metrics" {
   dashboard_body = jsonencode({
     variables = [
       {
-        id           = "ServiceId"
-        type         = "property"
-        inputType    = "select"
-        visible      = true
-        label        = "Fastly Service"
-        property     = "FastlyServiceId"
-        values       = [for id, name in var.fastly_service_ids : { label = name, value = id }]
+        id        = "ServiceId"
+        type      = "property"
+        inputType = "select"
+        visible   = true
+        label     = "Fastly Service"
+        property  = "FastlyServiceId"
+        values    = [for id, name in local.service_map : { label = name, value = id }]
       }
     ]
     widgets = [

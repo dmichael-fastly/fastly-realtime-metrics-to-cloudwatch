@@ -4,13 +4,13 @@ resource "aws_cloudwatch_dashboard" "fastly_metrics" {
   dashboard_body = jsonencode({
     variables = [
       {
-        id           = "ServiceId"
-        type         = "property"
-        inputType    = "select"
-        visible      = true
-        label        = "Fastly Service"
-        property     = "FastlyServiceId"
-        values       = [for id, name in var.fastly_service_ids : { label = name, value = id }]
+        id        = "ServiceId"
+        type      = "property"
+        inputType = "select"
+        visible   = true
+        label     = "Fastly Service"
+        property  = "FastlyServiceId"
+        values    = [for id, name in local.service_map : { label = name, value = id }]
       }
     ]
     widgets = [
@@ -224,10 +224,10 @@ EOT
         width  = 24
         height = 6
         properties = {
-          query   = "SOURCE '/aws/lambda/${aws_lambda_function.metrics_poller.function_name}' | fields @timestamp, @message | filter @message like /(?i)error|failed/ | sort @timestamp desc | limit 20"
-          region  = var.aws_region
-          title   = "System Health (Lambda Logs - Errors & Failures)"
-          view    = "table"
+          query  = "SOURCE '/aws/lambda/${aws_lambda_function.metrics_poller.function_name}' | fields @timestamp, @message | filter @message like /(?i)error|failed/ | sort @timestamp desc | limit 20"
+          region = var.aws_region
+          title  = "System Health (Lambda Logs - Errors & Failures)"
+          view   = "table"
         }
       }
     ]

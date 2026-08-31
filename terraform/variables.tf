@@ -11,8 +11,8 @@ variable "fastly_api_key" {
 }
 
 variable "fastly_service_ids" {
-  description = "Map of Fastly Service IDs to their human-readable display names"
-  type        = map(string)
+  description = "Comma-separated list of Fastly Service IDs to monitor (max 10)"
+  type        = string
 }
 
 variable "poll_interval_seconds" {
