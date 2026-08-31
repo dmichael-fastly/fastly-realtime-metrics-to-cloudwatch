@@ -43,7 +43,7 @@ def load_metrics_config() -> Dict[str, Any]:
             'origin': {'enabled': 'false', 'metrics': 'responses'}
         })
         
-        edge_enabled = config.getboolean('edge', 'enabled', fallback=True)
+    edge_enabled = config.getboolean('edge', 'enabled', fallback=True)
     
     origin_enabled = config.getboolean('origin', 'enabled', fallback=False)
     edge_metrics = []
@@ -139,6 +139,9 @@ def parse_and_push_metrics(service_data: List[Dict[str, Any]], enable_hrm: bool 
                 for k, v in raw_agg.items():
                     if isinstance(v, (int, float)):
                         flat_edge[k] = float(v)
+                # Synthesize bandwidth
+                if "bandwidth" in metrics_to_track:
+                    flat_edge["bandwidth"] = flat_edge.get("resp_body_bytes", 0.0) + flat_edge.get("resp_header_bytes", 0.0)
                 return flat_edge
             
             flat = {}
@@ -147,6 +150,10 @@ def parse_and_push_metrics(service_data: List[Dict[str, Any]], enable_hrm: bool 
                     for k, v in metrics.items():
                         if isinstance(v, (int, float)):
                             flat[k] = flat.get(k, 0.0) + float(v)
+            
+            # Synthesize bandwidth for origin
+            if "bandwidth" in metrics_to_track:
+                flat["bandwidth"] = flat.get("resp_body_bytes", 0.0) + flat.get("resp_header_bytes", 0.0)
             return flat
 
         if enable_hrm:

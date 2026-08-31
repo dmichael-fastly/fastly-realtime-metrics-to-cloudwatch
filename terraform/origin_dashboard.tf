@@ -17,6 +17,7 @@ resource "aws_cloudwatch_dashboard" "fastly_origin_metrics" {
           stacked = false
           region  = var.aws_region
           title   = "Total Origin Responses (Per Service)"
+          yAxis   = { left = { label = "Count", showUnits = false } }
           period  = 60
         }
       },
@@ -28,15 +29,16 @@ resource "aws_cloudwatch_dashboard" "fastly_origin_metrics" {
         height = 6
         properties = {
           metrics = [
-            [{ expression = "SEARCH('{Fastly/OriginInspector,FastlyServiceId} MetricName=\"Status_2xx\"', 'Sum', 60)", id = "o2xx", label = "2xx Success" }],
-            [{ expression = "SEARCH('{Fastly/OriginInspector,FastlyServiceId} MetricName=\"Status_3xx\"', 'Sum', 60)", id = "o3xx", label = "3xx Redirection" }],
-            [{ expression = "SEARCH('{Fastly/OriginInspector,FastlyServiceId} MetricName=\"Status_4xx\"', 'Sum', 60)", id = "o4xx", label = "4xx Client Error" }],
-            [{ expression = "SEARCH('{Fastly/OriginInspector,FastlyServiceId} MetricName=\"Status_5xx\"', 'Sum', 60)", id = "o5xx", label = "5xx Server Error" }]
+            [{ expression = "SEARCH('{Fastly/OriginInspector,FastlyServiceId} MetricName=\"Status_2xx\"', 'Sum', 60)", id = "o2xx", label = "2xx Success ($${PROP(\"Dim.FastlyServiceId\")})" }],
+            [{ expression = "SEARCH('{Fastly/OriginInspector,FastlyServiceId} MetricName=\"Status_3xx\"', 'Sum', 60)", id = "o3xx", label = "3xx Redirection ($${PROP(\"Dim.FastlyServiceId\")})" }],
+            [{ expression = "SEARCH('{Fastly/OriginInspector,FastlyServiceId} MetricName=\"Status_4xx\"', 'Sum', 60)", id = "o4xx", label = "4xx Client Error ($${PROP(\"Dim.FastlyServiceId\")})" }],
+            [{ expression = "SEARCH('{Fastly/OriginInspector,FastlyServiceId} MetricName=\"Status_5xx\"', 'Sum', 60)", id = "o5xx", label = "5xx Server Error ($${PROP(\"Dim.FastlyServiceId\")})" }]
           ]
           view    = "timeSeries"
           stacked = false
           region  = var.aws_region
           title   = "Origin HTTP Status Families (Per Service)"
+          yAxis   = { left = { label = "Count", showUnits = false } }
           period  = 60
         }
       },
@@ -48,13 +50,13 @@ resource "aws_cloudwatch_dashboard" "fastly_origin_metrics" {
         height = 6
         properties = {
           metrics = [
-            [{ expression = "SEARCH('{Fastly/OriginInspector,FastlyServiceId} MetricName=\"Resp_body_bytes\"', 'Sum', 60)", id = "obytes", label = "Body Bytes" }],
-            [{ expression = "SEARCH('{Fastly/OriginInspector,FastlyServiceId} MetricName=\"Resp_header_bytes\"', 'Sum', 60)", id = "ohbytes", label = "Header Bytes" }]
+            [{ expression = "SEARCH('{Fastly/OriginInspector,FastlyServiceId} MetricName=\"Bandwidth\"', 'Sum', 60)", id = "bw", label = "Bandwidth ($${PROP(\"Dim.FastlyServiceId\")})" }]
           ]
           view    = "timeSeries"
           stacked = false
           region  = var.aws_region
           title   = "Origin Bandwidth (Bytes, Per Service)"
+          yAxis   = { left = { label = "Bytes", showUnits = false } }
           period  = 60
         }
       },
@@ -79,10 +81,11 @@ resource "aws_cloudwatch_dashboard" "fastly_origin_metrics" {
             [{ expression = "SEARCH('{Fastly/OriginInspector,FastlyServiceId} MetricName=\"Latency_10000_to_60000ms\"', 'Sum', 60)", id = "l10", label = "10s-60s" }],
             [{ expression = "SEARCH('{Fastly/OriginInspector,FastlyServiceId} MetricName=\"Latency_60000ms\"', 'Sum', 60)", id = "l11", label = "60s+" }]
           ]
-          view    = "bar"
+          view    = "timeSeries"
           stacked = true
           region  = var.aws_region
           title   = "Origin Latency Histogram (Per Service)"
+          yAxis   = { left = { label = "Count of Requests", showUnits = false } }
           period  = 60
         }
       }
