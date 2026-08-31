@@ -107,7 +107,7 @@ EOT
         height = 6
         properties = {
           metrics = [
-            [{ expression = "SUM(errs) / SUM(reqs) * 100", id = "error_rate", label = "Error Rate %", color = "#d62728" }],
+            [{ expression = "(errs / reqs) * 100", id = "error_rate", label = "Error Rate %", color = "#d62728" }],
             ["Fastly/RealTime", "Errors", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "errs", visible = false }],
             ["Fastly/RealTime", "Requests", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "reqs", visible = false }]
           ]
@@ -127,8 +127,8 @@ EOT
         height = 6
         properties = {
           metrics = [
-            ["Fastly/RealTime", "Resp_body_bytes", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "body", label = "Body Bytes ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/RealTime", "Resp_header_bytes", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "headers", label = "Header Bytes ($${PROP(\"FastlyServiceId\")})" }]
+            ["Fastly/RealTime", "Bandwidth", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "bw", label = "Bandwidth ($${PROP(\"FastlyServiceId\")})" }],
+            
           ]
           view    = "timeSeries"
           stacked = true

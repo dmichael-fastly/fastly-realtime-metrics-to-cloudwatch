@@ -59,8 +59,8 @@ resource "aws_cloudwatch_dashboard" "fastly_origin_metrics" {
         height = 6
         properties = {
           metrics = [
-            ["Fastly/OriginInspector", "Resp_body_bytes", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "obytes", label = "Body Bytes ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/OriginInspector", "Resp_header_bytes", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "ohbytes", label = "Header Bytes ($${PROP(\"FastlyServiceId\")})" }]
+            ["Fastly/OriginInspector", "Bandwidth", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "obw", label = "Bandwidth ($${PROP(\"FastlyServiceId\")})" }],
+            
           ]
           view    = "timeSeries"
           stacked = false
@@ -90,7 +90,7 @@ resource "aws_cloudwatch_dashboard" "fastly_origin_metrics" {
             ["Fastly/OriginInspector", "Latency_10000_to_60000ms", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "l10", label = "10s-60s ($${PROP(\"FastlyServiceId\")})" }],
             ["Fastly/OriginInspector", "Latency_60000ms", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "l11", label = "60s+ ($${PROP(\"FastlyServiceId\")})" }]
           ]
-          view    = "bar"
+          view    = "timeSeries"
           stacked = true
           region  = var.aws_region
           title   = "Origin Latency Histogram (Per Service)"

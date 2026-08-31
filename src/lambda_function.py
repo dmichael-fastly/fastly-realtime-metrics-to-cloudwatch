@@ -144,6 +144,8 @@ def parse_and_push_metrics(service_data: List[Dict[str, Any]], enable_hrm: bool 
                 # Synthesize bandwidth
                 if "bandwidth" in metrics_to_track:
                     flat_edge["bandwidth"] = flat_edge.get("resp_body_bytes", 0.0) + flat_edge.get("resp_header_bytes", 0.0)
+                if "misses" in metrics_to_track:
+                    flat_edge["misses"] = flat_edge.get("miss", 0.0)
                 return flat_edge
             
             flat = {}
@@ -163,13 +165,12 @@ def parse_and_push_metrics(service_data: List[Dict[str, Any]], enable_hrm: bool 
                 recorded_ts = d.get("recorded", int(time.time()))
                 aggregated = flatten_metrics(d.get("aggregated", {}))
                 for metric_name in metrics_to_track:
-                    if metric_name in aggregated:
-                        metric_data.append({
+                    metric_data.append({
                             '_namespace': namespace,
                             'MetricName': metric_name.capitalize(),
                             'Dimensions': [{'Name': 'FastlyServiceId', 'Value': service_id}],
                             'Timestamp': recorded_ts,
-                            'Value': aggregated[metric_name],
+                            'Value': aggregated.get(metric_name, 0.0),
                             'Unit': 'Count' if 'bytes' not in metric_name and metric_name != 'bandwidth' else 'Bytes',
                             'StorageResolution': 1
                         })
@@ -184,9 +185,7 @@ def parse_and_push_metrics(service_data: List[Dict[str, Any]], enable_hrm: bool 
             recorded_ts = unseen_data[-1].get("recorded", int(time.time()))
             
             for metric_name, value in summed_metrics.items():
-                was_present = any(metric_name in flatten_metrics(d.get("aggregated", {})) for d in unseen_data)
-                if was_present:
-                    metric_data.append({
+                metric_data.append({
                         '_namespace': namespace,
                         'MetricName': metric_name.capitalize(),
                         'Dimensions': [{'Name': 'FastlyServiceId', 'Value': service_id}],
