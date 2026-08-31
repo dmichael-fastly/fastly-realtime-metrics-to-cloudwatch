@@ -49,6 +49,15 @@ data "aws_iam_policy_document" "lambda_policy" {
   statement {
     actions   = ["cloudwatch:PutMetricData"]
     resources = ["*"]
+    
+    condition {
+      test     = "StringEquals"
+      variable = "cloudwatch:namespace"
+      values   = [
+        "Fastly/RealTime", 
+        "Fastly/OriginInspector"
+      ]
+    }
   }
 }
 

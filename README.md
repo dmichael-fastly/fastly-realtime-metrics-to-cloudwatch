@@ -91,10 +91,10 @@ If you specifically want to see sub-minute granularity drawn on your CloudWatch 
 ## Getting Started
 
 ### Prerequisites
-1.  **AWS CLI** installed and configured (`aws configure`)
-2.  **Terraform** installed
-3.  **Python 3.12** installed (for packaging the Lambda dependencies)
-4.  A **Fastly API token** with permissions to read Real-Time Analytics.
+1.  **Fastly API Token:** You must generate a Fastly API token. 
+    *   **Role/Scope:** The token only requires `global:read` access.
+    *   **Service Access:** You can safely restrict the token to specific services, or allow access to "All Services".
+2.  **AWS Credentials:** AWS CLI installed and authenticated.
 
 ### Deployment
 We provide a wrapper script that automatically packages the Python Lambda dependencies and runs Terraform.
