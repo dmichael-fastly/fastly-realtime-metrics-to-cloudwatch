@@ -18,9 +18,6 @@ poll_interval_seconds = 10
 # Enable 1-second storage resolution in CloudWatch. 
 # Warning: can significantly increase CloudWatch Alarm costs if used.
 enable_high_resolution_metrics = false
-# Enable fetching and pushing Fastly Origin Inspector metrics (Requires Origin Inspector product enabled at Fastly)
-enable_origin_metrics = false
-
 # Number of days to keep CloudWatch Logs for the Lambda function (default: 7)
 log_retention_days = 7
 

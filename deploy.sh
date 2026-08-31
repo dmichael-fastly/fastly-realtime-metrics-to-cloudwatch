@@ -17,6 +17,8 @@ pip install --platform manylinux2014_aarch64 --target=package/ --implementation 
 cp src/lambda_function.py package/
 if [ -f "metrics.ini" ]; then
     cp metrics.ini package/
+elif [ -f "metrics.ini.example" ]; then
+    cp metrics.ini.example package/metrics.ini
 fi
 cd package
 zip -r ../lambda.zip . > /dev/null 2>&1

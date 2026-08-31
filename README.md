@@ -21,7 +21,7 @@ All infrastructure is managed via **[Terraform](https://www.terraform.io/)**.
 
 ## Configuration (`metrics.ini`)
 
-You can control exactly which metrics are fetched and pushed to CloudWatch by editing the `metrics.ini` file in the root of the project. This allows you to manage your CloudWatch Custom Metric storage costs.
+You can control exactly which metrics are fetched and pushed to CloudWatch by copying `metrics.ini.example` to `metrics.ini` in the root of the project and editing it. This allows you to manage your CloudWatch Custom Metric storage costs.
 
 *   **Edge Metrics**: Enabled by default. You can track total requests, hits, errors, bandwidth, and specific HTTP status codes.
 *   **Origin Metrics**: Enabled by default. If you have the Fastly Origin Inspector product enabled on your account, you can set `enabled = true` under `[origin]` to start tracking origin responses, origin status codes, and origin bandwidth.
@@ -111,6 +111,8 @@ We provide a wrapper script that automatically packages the Python Lambda depend
     *   `poll_interval_seconds`: How often to poll in seconds (e.g., `10`).
 
 *(Alternatively, you can copy the provided `terraform/terraform.tfvars.example` file to `terraform/terraform.tfvars` and fill it out to supply these automatically and configure advanced options like Alert Emails).*
+
+3.  *(Optional)* Customize your metrics by copying `metrics.ini.example` to `metrics.ini` and editing it. If you don't provide one, the default example configuration will be used automatically.
 
 ### Teardown
 To cleanly remove all AWS resources (Lambda, IAM roles, EventBridge rules, and Secrets), run:

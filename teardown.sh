@@ -12,4 +12,8 @@ fi
 # 2. Run Terraform Destroy
 echo "🔥 Running Terraform Destroy..."
 cd terraform
-terraform destroy
+if [ "$1" = "-y" ]; then
+    terraform destroy -auto-approve
+else
+    terraform destroy
+fi
