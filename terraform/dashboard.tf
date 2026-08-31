@@ -9,9 +9,8 @@ resource "aws_cloudwatch_dashboard" "fastly_metrics" {
         inputType    = "select"
         visible      = true
         label        = "Fastly Service"
-        populateFrom = "FastlyServiceId"
-        search       = "{Fastly/RealTime,FastlyServiceId} MetricName=\"Requests\""
         property     = "FastlyServiceId"
+        values       = [for id, name in var.fastly_service_ids : { label = name, value = id }]
       }
     ]
     widgets = [

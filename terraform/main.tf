@@ -99,7 +99,7 @@ resource "aws_lambda_function" "metrics_poller" {
   environment {
     variables = {
       SECRET_ARN                     = aws_secretsmanager_secret.fastly_api_key.arn
-      FASTLY_SERVICE_IDS             = var.fastly_service_ids
+      FASTLY_SERVICE_IDS             = join(",", keys(var.fastly_service_ids))
       POLL_INTERVAL_SECONDS          = tostring(var.poll_interval_seconds)
       ENABLE_HIGH_RESOLUTION_METRICS = tostring(var.enable_high_resolution_metrics)
     }

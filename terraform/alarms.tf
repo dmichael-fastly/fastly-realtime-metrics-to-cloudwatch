@@ -1,5 +1,5 @@
 locals {
-  service_ids = compact([for s in split(",", var.fastly_service_ids) : trimspace(s)])
+  service_ids = keys(var.fastly_service_ids)
 }
 
 # -----------------------------------------------------------------------------

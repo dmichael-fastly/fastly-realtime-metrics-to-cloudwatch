@@ -9,9 +9,8 @@ resource "aws_cloudwatch_dashboard" "fastly_origin_metrics" {
         inputType    = "select"
         visible      = true
         label        = "Fastly Service"
-        populateFrom = "FastlyServiceId"
-        search       = "{Fastly/OriginInspector,FastlyServiceId} MetricName=\"Responses\""
         property     = "FastlyServiceId"
+        values       = [for id, name in var.fastly_service_ids : { label = name, value = id }]
       }
     ]
     widgets = [

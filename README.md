@@ -107,7 +107,7 @@ We provide a wrapper script that automatically packages the Python Lambda depend
     ```
 2.  Terraform will prompt you for the required values (or you can set them in `terraform/terraform.tfvars`):
     *   `fastly_api_key`: Your Fastly API token.
-    *   `fastly_service_ids`: A comma-separated list of service IDs (e.g., `SU1Z0isxPaozGVKXdv0eY,1xyz2...`).
+    *   `fastly_service_ids`: A map of Fastly Service IDs to their display names (e.g., `{ "SU1Z0isxPaozGVKXdv0eY" = "Prod CDN" }`).
     *   `poll_interval_seconds`: How often to poll in seconds (e.g., `10`).
 
 *(Alternatively, you can copy the provided `terraform/terraform.tfvars.example` file to `terraform/terraform.tfvars` and fill it out to supply these automatically and configure advanced options like Alert Emails).*
