@@ -79,7 +79,7 @@ resource "aws_cloudwatch_dashboard" "fastly_origin_metrics" {
             [{ expression = "SEARCH('{Fastly/OriginInspector,FastlyServiceId} MetricName=\"Latency_10000_to_60000ms\"', 'Sum', 60)", id = "l10", label = "10s-60s" }],
             [{ expression = "SEARCH('{Fastly/OriginInspector,FastlyServiceId} MetricName=\"Latency_60000ms\"', 'Sum', 60)", id = "l11", label = "60s+" }]
           ]
-          view    = "timeSeries"
+          view    = "bar"
           stacked = true
           region  = var.aws_region
           title   = "Origin Latency Histogram (Per Service)"
