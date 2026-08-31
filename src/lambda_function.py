@@ -13,8 +13,11 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 # Global clients for reuse across lambda invocations
-secrets_client = boto3.client('secretsmanager')
-cloudwatch_client = boto3.client('cloudwatch')
+from botocore.config import Config
+
+boto_config = Config(retries={'max_attempts': 5, 'mode': 'standard'})
+secrets_client = boto3.client('secretsmanager', config=boto_config)
+cloudwatch_client = boto3.client('cloudwatch', config=boto_config)
 
 # Initialize global caches
 _fastly_api_token = None
@@ -70,7 +73,7 @@ def get_api_token(secret_arn: str) -> str:
             raise
     return _fastly_api_token
 
-async def fetch_fastly_metrics(session: aiohttp.ClientSession, service_id: str, api_token: str, source: str) -> Dict[str, Any]:
+async def fetch_fastly_metrics(session: aiohttp.ClientSession, service_id: str, api_token: str, source: str, max_retries: int = 3) -> Dict[str, Any]:
     """Fetch real-time metrics for a single Fastly service and source asynchronously."""
     if source == "edge":
         url = f"https://rt.fastly.com/v1/channel/{service_id}/ts/h"
@@ -82,14 +85,20 @@ async def fetch_fastly_metrics(session: aiohttp.ClientSession, service_id: str, 
         "Accept": "application/json"
     }
     
-    try:
-        async with session.get(url, headers=headers) as response:
-            response.raise_for_status()
-            data = await response.json()
-            return {"service_id": service_id, "source": source, "data": data}
-    except Exception as e:
-        logger.error(f"Failed to fetch {source} metrics for service {service_id}: {e}")
-        return {"service_id": service_id, "source": source, "error": str(e)}
+    for attempt in range(max_retries):
+        try:
+            async with session.get(url, headers=headers) as response:
+                response.raise_for_status()
+                data = await response.json()
+                return {"service_id": service_id, "source": source, "data": data}
+        except Exception as e:
+            if attempt == max_retries - 1:
+                logger.error(f"Failed to fetch {source} metrics for service {service_id} after {max_retries} attempts: {e}")
+                return {"service_id": service_id, "source": source, "error": str(e)}
+            
+            backoff = 0.1 * (2 ** attempt)
+            logger.warning(f"Transient error fetching {source} metrics for {service_id} (Attempt {attempt+1}/{max_retries}). Retrying in {backoff}s...")
+            await asyncio.sleep(backoff)
 
 def parse_and_push_metrics(service_data: List[Dict[str, Any]], enable_hrm: bool = False) -> None:
     """Parse Fastly metrics and push them to AWS CloudWatch."""
