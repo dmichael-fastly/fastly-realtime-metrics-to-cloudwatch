@@ -1,9 +1,8 @@
-import asyncio
 import configparser
 import time
 
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from src import lambda_function
 
@@ -11,14 +10,12 @@ from src import lambda_function
 def mock_aiohttp_session():
     with patch('aiohttp.ClientSession') as mock_session:
         mock_response = MagicMock()
-        mock_response.json.return_value = asyncio.Future()
-        mock_response.json.return_value.set_result({"Data": []})
+        mock_response.json = AsyncMock(return_value={"Data": []})
         mock_response.raise_for_status.return_value = None
 
         mock_get_ctx = MagicMock()
         mock_get_ctx.__aenter__.return_value = mock_response
-        mock_get_ctx.__aexit__.return_value = asyncio.Future()
-        mock_get_ctx.__aexit__.return_value.set_result(None)
+        mock_get_ctx.__aexit__.return_value = False
 
         mock_session_instance = MagicMock()
         mock_session_instance.get.return_value = mock_get_ctx

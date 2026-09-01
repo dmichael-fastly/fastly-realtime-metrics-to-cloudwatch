@@ -5,7 +5,11 @@
       "Bash(terraform validate:*)",
       "Bash(terraform plan:*)",
       "Bash(pytest:*)",
-      "Bash(.venv/bin/pytest:*)"
+      "Bash(.venv/bin/pytest:*)",
+      "Bash(git rm *)",
+      "Bash(git commit -m 'chore: untrack metrics.ini, ship only metrics.ini.example *)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'chore: silence pytest warnings via pytest-asyncio upgrade and AsyncMock fixture *)"
     ]
   }
 }
