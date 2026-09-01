@@ -167,7 +167,7 @@ def parse_and_push_metrics(service_data: List[Dict[str, Any]], enable_hrm: bool 
                 for metric_name in metrics_to_track:
                     metric_data.append({
                             '_namespace': namespace,
-                            'MetricName': metric_name.capitalize(),
+                            'MetricName': ''.join(x.capitalize() for x in metric_name.lower().split('_')),
                             'Dimensions': [{'Name': 'FastlyServiceId', 'Value': service_id}],
                             'Timestamp': recorded_ts,
                             'Value': aggregated.get(metric_name, 0.0),
@@ -187,7 +187,7 @@ def parse_and_push_metrics(service_data: List[Dict[str, Any]], enable_hrm: bool 
             for metric_name, value in summed_metrics.items():
                 metric_data.append({
                         '_namespace': namespace,
-                        'MetricName': metric_name.capitalize(),
+                        'MetricName': ''.join(x.capitalize() for x in metric_name.lower().split('_')),
                         'Dimensions': [{'Name': 'FastlyServiceId', 'Value': service_id}],
                         'Timestamp': recorded_ts,
                         'Value': value,
