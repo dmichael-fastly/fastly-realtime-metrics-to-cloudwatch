@@ -124,8 +124,8 @@ def parse_and_push_metrics(service_data: List[Dict[str, Any]], enable_hrm: bool 
         last_seen = _last_seen_timestamps.get(cache_key, 0)
         
         if last_seen == 0:
-            # On cold start, process the last 60 seconds of data to cover any gaps from the previous execution
-            cutoff = int(time.time()) - 60
+            # On cold start, process the last 15 seconds to cover the gap since the previous lambda exited (which runs for 58s every 60s)
+            cutoff = int(time.time()) - 15
             last_seen = max(cutoff, ts_data[0].get("recorded", 1) - 1)
             
         unseen_data = [d for d in ts_data if d.get("recorded", 0) > last_seen]
