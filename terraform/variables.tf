@@ -67,3 +67,21 @@ variable "log_retention_days" {
   default     = 7
 }
 
+
+locals {
+  metrics_ini    = file("${path.module}/../metrics.ini")
+  edge_reqs      = length(regexall("requests", local.metrics_ini)) > 0
+  edge_hits      = length(regexall("hits", local.metrics_ini)) > 0
+  edge_misses    = length(regexall("misses", local.metrics_ini)) > 0
+  edge_errors    = length(regexall("errors", local.metrics_ini)) > 0
+  edge_bandwidth = length(regexall("bandwidth", local.metrics_ini)) > 0
+  edge_status    = length(regexall("status_2xx", local.metrics_ini)) > 0
+  edge_4xx       = length(regexall("status_400", local.metrics_ini)) > 0
+  edge_5xx       = length(regexall("status_500", local.metrics_ini)) > 0
+  edge_compute   = length(regexall("compute_request_time_ms", local.metrics_ini)) > 0
+
+  origin_resp    = length(regexall("responses", local.metrics_ini)) > 0
+  origin_bw      = length(regexall("bandwidth", local.metrics_ini)) > 0
+  origin_status  = length(regexall("status_2xx", local.metrics_ini)) > 0
+  origin_latency = length(regexall("latency_0_to_1ms", local.metrics_ini)) > 0
+}

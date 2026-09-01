@@ -13,8 +13,8 @@ resource "aws_cloudwatch_dashboard" "fastly_metrics" {
         values    = [for id, name in local.service_map : { label = name, value = id }]
       }
     ]
-    widgets = [
-      {
+    widgets = flatten([
+      true ? [{
         type   = "text"
         x      = 0
         y      = 0
@@ -26,8 +26,8 @@ resource "aws_cloudwatch_dashboard" "fastly_metrics" {
 Monitoring edge requests, cache performance, errors, and bandwidth. See [Fastly Metrics Reference](https://www.fastly.com/documentation/reference/api/metrics-stats/realtime/).
 EOT
         }
-      },
-      {
+      }] : [],
+      local.edge_reqs ? [{
         type   = "metric"
         x      = 0
         y      = 2
@@ -43,8 +43,8 @@ EOT
           title   = "Total Requests (Per Service)"
           period  = 60
         }
-      },
-      {
+      }] : [],
+      local.edge_hits && local.edge_misses ? [{
         type   = "metric"
         x      = 8
         y      = 2
@@ -61,8 +61,8 @@ EOT
           title   = "Cache Hits & Misses"
           period  = 60
         }
-      },
-      {
+      }] : [],
+      local.edge_hits && local.edge_misses ? [{
         type   = "metric"
         x      = 16
         y      = 2
@@ -81,8 +81,8 @@ EOT
           period  = 60
           yAxis   = { left = { min = 0, max = 100 } }
         }
-      },
-      {
+      }] : [],
+      true ? [{
         type   = "metric"
         x      = 0
         y      = 8
@@ -98,8 +98,8 @@ EOT
           title   = "Errors"
           period  = 60
         }
-      },
-      {
+      }] : [],
+      local.edge_errors && local.edge_reqs ? [{
         type   = "metric"
         x      = 8
         y      = 8
@@ -118,8 +118,8 @@ EOT
           period  = 60
           yAxis   = { left = { min = 0 } }
         }
-      },
-      {
+      }] : [],
+      local.edge_bandwidth ? [{
         type   = "metric"
         x      = 16
         y      = 8
@@ -128,7 +128,7 @@ EOT
         properties = {
           metrics = [
             ["Fastly/RealTime", "Bandwidth", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "bw", label = "Bandwidth ($${PROP(\"FastlyServiceId\")})" }],
-            
+
           ]
           view    = "timeSeries"
           stacked = true
@@ -136,8 +136,8 @@ EOT
           title   = "Bandwidth Output (Bytes)"
           period  = 60
         }
-      },
-      {
+      }] : [],
+      local.edge_status ? [{
         type   = "metric"
         x      = 0
         y      = 14
@@ -156,8 +156,8 @@ EOT
           title   = "HTTP Status Families"
           period  = 60
         }
-      },
-      {
+      }] : [],
+      local.edge_4xx ? [{
         type   = "metric"
         x      = 8
         y      = 14
@@ -176,8 +176,8 @@ EOT
           title   = "4xx Breakdowns"
           period  = 60
         }
-      },
-      {
+      }] : [],
+      local.edge_5xx ? [{
         type   = "metric"
         x      = 16
         y      = 14
@@ -196,8 +196,8 @@ EOT
           title   = "5xx Breakdowns"
           period  = 60
         }
-      },
-      {
+      }] : [],
+      local.edge_compute ? [{
         type   = "metric"
         x      = 0
         y      = 20
@@ -216,8 +216,8 @@ EOT
           title   = "Edge Latency & Processing Times"
           period  = 60
         }
-      },
-      {
+      }] : [],
+      true ? [{
         type   = "log"
         x      = 0
         y      = 99
@@ -229,8 +229,7 @@ EOT
           title  = "System Health (Lambda Logs - Errors & Failures)"
           view   = "table"
         }
-      }
-    ]
+      }] : [],
+    ])
   })
 }
-

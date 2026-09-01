@@ -13,8 +13,8 @@ resource "aws_cloudwatch_dashboard" "fastly_origin_metrics" {
         values    = [for id, name in local.service_map : { label = name, value = id }]
       }
     ]
-    widgets = [
-      {
+    widgets = flatten([
+      local.origin_resp ? [{
         type   = "metric"
         x      = 0
         y      = 0
@@ -30,8 +30,8 @@ resource "aws_cloudwatch_dashboard" "fastly_origin_metrics" {
           title   = "Total Origin Responses (Per Service)"
           period  = 60
         }
-      },
-      {
+      }] : [],
+      local.origin_status ? [{
         type   = "metric"
         x      = 0
         y      = 6
@@ -50,8 +50,8 @@ resource "aws_cloudwatch_dashboard" "fastly_origin_metrics" {
           title   = "Origin HTTP Status Families (Per Service)"
           period  = 60
         }
-      },
-      {
+      }] : [],
+      local.origin_bw ? [{
         type   = "metric"
         x      = 12
         y      = 6
@@ -60,7 +60,7 @@ resource "aws_cloudwatch_dashboard" "fastly_origin_metrics" {
         properties = {
           metrics = [
             ["Fastly/OriginInspector", "Bandwidth", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "obw", label = "Bandwidth ($${PROP(\"FastlyServiceId\")})" }],
-            
+
           ]
           view    = "timeSeries"
           stacked = false
@@ -68,8 +68,8 @@ resource "aws_cloudwatch_dashboard" "fastly_origin_metrics" {
           title   = "Origin Bandwidth (Bytes, Per Service)"
           period  = 60
         }
-      },
-      {
+      }] : [],
+      local.origin_latency ? [{
         type   = "metric"
         x      = 0
         y      = 12
@@ -96,7 +96,7 @@ resource "aws_cloudwatch_dashboard" "fastly_origin_metrics" {
           title   = "Origin Latency Histogram (Per Service)"
           period  = 60
         }
-      }
-    ]
+      }] : [],
+    ])
   })
 }
