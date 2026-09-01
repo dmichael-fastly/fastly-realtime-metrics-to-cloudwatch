@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(terraform fmt:*)",
+      "Bash(terraform validate:*)",
+      "Bash(terraform plan:*)",
+      "Bash(pytest:*)",
+      "Bash(.venv/bin/pytest:*)"
+    ]
+  }
+}

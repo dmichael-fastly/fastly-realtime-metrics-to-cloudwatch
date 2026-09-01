@@ -1,0 +1,293 @@
+resource "aws_cloudwatch_dashboard" "fastly_metrics" {
+  dashboard_name = "Fastly-RealTime-Metrics"
+
+  dashboard_body = jsonencode({
+    variables = [
+      {
+        id        = "ServiceId"
+        type      = "property"
+        inputType = "select"
+        visible   = true
+        label     = "Fastly Service"
+        property  = "FastlyServiceId"
+        values    = [for id, name in local.service_map : { label = name, value = id }]
+      }
+    ]
+    widgets = flatten([
+      true ? [{
+        type   = "text"
+        x      = 0
+        y      = 0
+        width  = 24
+        height = 2
+        properties = {
+          markdown = <<EOT
+# Fastly Real-Time Edge Metrics
+Monitoring edge requests, cache performance, errors, and bandwidth. See [Fastly Metrics Reference](https://www.fastly.com/documentation/reference/api/metrics-stats/realtime/).
+EOT
+        }
+      }] : [],
+      local.edge_reqs ? [{
+        type   = "metric"
+        x      = 0
+        y      = 2
+        width  = 8
+        height = 6
+        properties = {
+          metrics = [
+            ["Fastly/RealTime", "Requests", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "reqs" }]
+          ]
+          view    = "timeSeries"
+          stacked = false
+          region  = var.aws_region
+          title   = "Total Requests (Per Service)"
+          period  = 60
+        }
+      }] : [],
+      local.edge_hits && local.edge_misses ? [{
+        type   = "metric"
+        x      = 8
+        y      = 2
+        width  = 8
+        height = 6
+        properties = {
+          metrics = [
+            ["Fastly/RealTime", "Hits", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "hits" }],
+            ["Fastly/RealTime", "Misses", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "misses" }]
+          ]
+          view    = "timeSeries"
+          stacked = true
+          region  = var.aws_region
+          title   = "Cache Hits & Misses"
+          period  = 60
+        }
+      }] : [],
+      local.edge_hits && local.edge_misses ? [{
+        type   = "metric"
+        x      = 16
+        y      = 2
+        width  = 8
+        height = 6
+        properties = {
+          metrics = [
+            [{ expression = "(hits / (hits + misses)) * 100", id = "hit_ratio", label = "Hit Ratio %", color = "#2ca02c" }],
+            ["Fastly/RealTime", "Hits", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "hits", visible = false }],
+            ["Fastly/RealTime", "Misses", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "misses", visible = false }]
+          ]
+          view    = "timeSeries"
+          stacked = false
+          region  = var.aws_region
+          title   = "Global Cache Hit Ratio (%)"
+          period  = 60
+          yAxis   = { left = { min = 0, max = 100 } }
+        }
+      }] : [],
+      local.edge_errors ? [{
+        type   = "metric"
+        x      = 0
+        y      = 8
+        width  = 8
+        height = 6
+        properties = {
+          metrics = [
+            ["Fastly/RealTime", "Errors", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "errs", color = "#d62728" }]
+          ]
+          view    = "timeSeries"
+          stacked = false
+          region  = var.aws_region
+          title   = "Errors"
+          period  = 60
+        }
+      }] : [],
+      local.edge_errors && local.edge_reqs ? [{
+        type   = "metric"
+        x      = 8
+        y      = 8
+        width  = 8
+        height = 6
+        properties = {
+          metrics = [
+            [{ expression = "(errs / reqs) * 100", id = "error_rate", label = "Error Rate %", color = "#d62728" }],
+            ["Fastly/RealTime", "Errors", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "errs", visible = false }],
+            ["Fastly/RealTime", "Requests", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "reqs", visible = false }]
+          ]
+          view    = "timeSeries"
+          stacked = false
+          region  = var.aws_region
+          title   = "Global Error Rate (%)"
+          period  = 60
+          yAxis   = { left = { min = 0 } }
+        }
+      }] : [],
+      local.edge_bandwidth ? [{
+        type   = "metric"
+        x      = 16
+        y      = 8
+        width  = 8
+        height = 6
+        properties = {
+          metrics = [
+            ["Fastly/RealTime", "Bandwidth", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "bw", label = "Bandwidth ($${PROP(\"FastlyServiceId\")})" }],
+
+          ]
+          view    = "timeSeries"
+          stacked = true
+          region  = var.aws_region
+          title   = "Bandwidth Output (Bytes)"
+          period  = 60
+        }
+      }] : [],
+      local.edge_status ? [{
+        type   = "metric"
+        x      = 0
+        y      = 14
+        width  = 8
+        height = 6
+        properties = {
+          metrics = [
+            ["Fastly/RealTime", "Status2xx", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m2xx", label = "2xx Success ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "Status3xx", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m3xx", label = "3xx Redirection ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "Status4xx", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m4xx", label = "4xx Client Error ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "Status5xx", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m5xx", label = "5xx Server Error ($${PROP(\"FastlyServiceId\")})" }]
+          ]
+          view    = "timeSeries"
+          stacked = true
+          region  = var.aws_region
+          title   = "HTTP Status Families"
+          period  = 60
+        }
+      }] : [],
+      local.edge_4xx ? [{
+        type   = "metric"
+        x      = 8
+        y      = 14
+        width  = 8
+        height = 6
+        properties = {
+          metrics = [
+            ["Fastly/RealTime", "Status400", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m400", label = "400 Bad Request ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "Status401", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m401", label = "401 Unauthorized ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "Status403", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m403", label = "403 Forbidden ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "Status404", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m404", label = "404 Not Found ($${PROP(\"FastlyServiceId\")})" }]
+          ]
+          view    = "timeSeries"
+          stacked = true
+          region  = var.aws_region
+          title   = "4xx Breakdowns"
+          period  = 60
+        }
+      }] : [],
+      local.edge_5xx ? [{
+        type   = "metric"
+        x      = 16
+        y      = 14
+        width  = 8
+        height = 6
+        properties = {
+          metrics = [
+            ["Fastly/RealTime", "Status500", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m500", label = "500 Internal Server Error ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "Status502", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m502", label = "502 Bad Gateway ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "Status503", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m503", label = "503 Service Unavailable ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "Status504", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "m504", label = "504 Gateway Timeout ($${PROP(\"FastlyServiceId\")})" }]
+          ]
+          view    = "timeSeries"
+          stacked = true
+          region  = var.aws_region
+          title   = "5xx Breakdowns"
+          period  = 60
+        }
+      }] : [],
+      local.edge_compute ? [{
+        type   = "metric"
+        x      = 0
+        y      = 20
+        width  = 24
+        height = 6
+        properties = {
+          metrics = [
+            ["Fastly/RealTime", "ComputeRequestTimeMs", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "e_crt", label = "Compute Request Time (ms) ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "ComputeExecutionTimeMs", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "e_cet", label = "Compute Execution Time (ms) ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "MissTime", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "e_mt", label = "Miss Time ($${PROP(\"FastlyServiceId\")})" }],
+            ["Fastly/RealTime", "PassTime", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "e_pt", label = "Pass Time ($${PROP(\"FastlyServiceId\")})" }]
+          ]
+          view    = "timeSeries"
+          stacked = false
+          region  = var.aws_region
+          title   = "Edge Latency & Processing Times"
+          period  = 60
+        }
+      }] : [],
+      true ? [{
+        type   = "log"
+        x      = 0
+        y      = 99
+        width  = 24
+        height = 6
+        properties = {
+          query  = "SOURCE '/aws/lambda/${aws_lambda_function.metrics_poller.function_name}' | fields @timestamp, @message | filter @message like /(?i)error|failed/ | sort @timestamp desc | limit 20"
+          region = var.aws_region
+          title  = "System Health (Lambda Logs - Errors & Failures)"
+          view   = "table"
+        }
+      }] : [],
+
+      local.edge_volume ? [{
+        type   = "metric"
+        x      = 0
+        y      = 30
+        width  = 12
+        height = 6
+        properties = {
+          metrics = [
+            ["Fastly/RealTime", "EdgeRequests", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "er", label = "Edge Requests" }],
+            ["Fastly/RealTime", "EdgeHitRequests", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "ehr", label = "Edge Hit Requests" }],
+            ["Fastly/RealTime", "EdgeMissRequests", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "emr", label = "Edge Miss Requests" }]
+          ]
+          view    = "timeSeries"
+          stacked = false
+          region  = var.aws_region
+          title   = "Edge Traffic Volume"
+          period  = 60
+        }
+      }] : [],
+
+      local.edge_shield ? [{
+        type   = "metric"
+        x      = 12
+        y      = 30
+        width  = 12
+        height = 6
+        properties = {
+          metrics = [
+            ["Fastly/RealTime", "ShieldFetches", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "sf", label = "Shield Fetches" }],
+            ["Fastly/RealTime", "ShieldHitRequests", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "shr", label = "Shield Hit Requests" }]
+          ]
+          view    = "timeSeries"
+          stacked = false
+          region  = var.aws_region
+          title   = "Origin Shielding"
+          period  = 60
+        }
+      }] : [],
+
+      local.edge_security ? [{
+        type   = "metric"
+        x      = 0
+        y      = 36
+        width  = 24
+        height = 6
+        properties = {
+          metrics = [
+            ["Fastly/RealTime", "DdosProtectionRequestsDetectCount", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "ddosd", label = "DDoS Detects" }],
+            ["Fastly/RealTime", "DdosProtectionRequestsMitigateCount", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "ddosm", label = "DDoS Mitigates" }]
+          ]
+          view    = "timeSeries"
+          stacked = false
+          region  = var.aws_region
+          title   = "Security & DDoS Protection"
+          period  = 60
+        }
+      }] : [],
+    ])
+  })
+}

@@ -1,0 +1,48 @@
+[edge]
+# Set to false to disable standard edge metrics polling
+enabled = true
+
+# ==============================================================================
+# DEFAULT EDGE METRICS
+# ==============================================================================
+# Recommended defaults for standard edge metrics
+metrics = requests, hits, misses, errors, bandwidth, status_2xx, status_3xx, status_4xx, status_5xx, status_400, status_401, status_403, status_404, status_500, status_502, status_503, status_504, miss_time, pass_time
+
+# ==============================================================================
+# ADDITIONAL EDGE METRICS (Uncomment to enable)
+# ==============================================================================
+
+# -- HTTP Status Codes --
+metrics_extra_status = status_1xx, status_200, status_204, status_206, status_301, status_302, status_304, status_400, status_401, status_403, status_404, status_416, status_429, status_500, status_501, status_502, status_503, status_504, status_505, status_530
+
+# -- Traffic Volume & Cache Behavior --
+metrics_extra_volume = misses, edge_requests, edge_hit_requests, edge_miss_requests, edge_resp_body_bytes, edge_resp_header_bytes, edge_hit_resp_body_bytes, edge_miss_resp_body_bytes, miss_time, pass_time
+
+# -- Origin Fetch & Shielding --
+metrics_extra_shield = shield, shield_fetches, shield_hit_requests, shield_fetch_body_bytes, shield_fetch_resp_body_bytes, segblock_origin_fetches, segblock_shield_fetches
+
+# -- Security / WAF / DDoS --
+metrics_extra_security = ddos_protection_requests_detect_count, ddos_protection_requests_mitigate_count, attack_blocked_req_body_bytes, attack_logged_req_body_bytes
+
+# -- Compute@Edge Advanced --
+#metrics_extra_compute = compute_request_time_ms, compute_execution_time_ms, compute_requests, compute_ram_free, compute_stack_limit_exceeded
+
+
+[origin]
+# Set to true if you have Fastly Origin Inspector enabled on your Fastly account
+enabled = false
+
+# ==============================================================================
+# DEFAULT ORIGIN METRICS
+# ==============================================================================
+# Available aggregated metrics for Origin Inspector
+metrics = responses, bandwidth, status_2xx, status_3xx, status_4xx, status_5xx, latency_0_to_1ms, latency_1_to_5ms, latency_5_to_10ms, latency_10_to_50ms, latency_50_to_100ms, latency_100_to_250ms, latency_250_to_500ms, latency_500_to_1000ms, latency_1000_to_5000ms, latency_5000_to_10000ms, latency_10000_to_60000ms, latency_60000ms
+
+# ==============================================================================
+# ADDITIONAL ORIGIN METRICS (Uncomment to enable)
+# ==============================================================================
+
+# -- Extra Origin Metrics --
+
+# -- Specific Origin Status Codes --
+metrics_extra_status = status_2xx, status_3xx, status_4xx, status_1xx, status_200, status_204, status_206, status_301, status_302, status_304, status_400, status_401, status_403, status_404, status_416, status_429, status_500, status_501, status_502, status_503, status_504, status_505, status_530
