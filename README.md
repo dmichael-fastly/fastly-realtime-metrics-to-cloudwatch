@@ -24,7 +24,7 @@ All infrastructure is managed via **[Terraform](https://www.terraform.io/)**.
 You can control exactly which metrics are fetched and pushed to CloudWatch by copying `metrics.ini.example` to `metrics.ini` in the root of the project and editing it. This allows you to manage your CloudWatch Custom Metric storage costs.
 
 *   **Edge Metrics**: Enabled by default. You can track total requests, hits, errors, bandwidth, and specific HTTP status codes.
-*   **Origin Metrics**: Enabled by default. If you have the Fastly Origin Inspector product enabled on your account, you can set `enabled = true` under `[origin]` to start tracking origin responses, origin status codes, and origin bandwidth.
+*   **Origin Metrics**: Disabled by default. If you have the Fastly Origin Inspector product enabled on your account, set `enabled = true` under `[origin]` to start tracking origin responses, origin status codes, origin bandwidth, and latency histograms.
 
 ---
 
@@ -36,12 +36,12 @@ AWS costs are driven by several factors:
 
 **1. CloudWatch Custom Metrics (Storage):**
 * Cost: $0.30 per metric / month.
-* The default configuration explicitly tracks **8 core Edge metrics** per Fastly Service (Origin metrics are disabled by default as they require a paid Fastly product).
-* If you uncomment the rest of the file to track all **93 Fastly metrics** provided in the template, it scales to **~$27.90 / month**.
-* *(Note: The Fastly API actually exposes over 130+ metric fields. You can manually add any missing fields to the `metrics.ini` file if you need them).* 
-* Cost for 1 Service (42 default metrics): **$12.60 / month**.
-* Cost for 5 Services (42 metrics): **$63.00 / month**.
-* Cost for 10 Services (42 metrics): **$126.00 / month**.
+* The default template tracks **55 Edge metrics** per Fastly Service (Origin metrics are disabled by default as they require a paid Fastly product).
+* Enabling Origin metrics adds **38 more** (93 total), scaling to **~$27.90 / month** per service.
+* *(Note: The Fastly Real-Time API actually exposes over 340 metric fields, plus ~160 more via Origin Inspector. You can add any field name to `metrics.ini` and it will be picked up with no code changes).*
+* Cost for 1 Service (55 default metrics): **$16.50 / month**.
+* Cost for 5 Services (55 metrics): **$82.50 / month**.
+* Cost for 10 Services (55 metrics): **$165.00 / month**.
 *(Note: Metric storage costs scale linearly based on how many metrics you enable in `metrics.ini` and how many Fastly Services you list in `FASTLY_SERVICE_IDS`)*
 
 **2. CloudWatch `PutMetricData` API Requests:**
@@ -74,7 +74,7 @@ If you specifically want to see sub-minute granularity drawn on your CloudWatch 
 
 ### Estimated Monthly Costs by Polling Interval
 
-*The following estimates assume you are using the **Recommended Setup (~23 metrics)** and are **not** using the AWS Free Tier. If your account qualifies for the Free Tier, your Lambda compute and initial CloudWatch requests will be largely free, bringing these costs down significantly.*
+*The following estimates cover the polling-driven costs (API requests + Lambda compute); metric storage scales separately with your `metrics.ini` selection as shown above. They assume you are **not** using the AWS Free Tier. If your account qualifies for the Free Tier, your Lambda compute and initial CloudWatch requests will be largely free, bringing these costs down significantly.*
 
 | Polling Interval | `PutMetricData` API Costs | Lambda Compute (256MB) | Base Costs (Metrics, Alarms, Logs) | **Estimated Total Cost / Month** |
 | :--- | :--- | :--- | :--- | :--- |
