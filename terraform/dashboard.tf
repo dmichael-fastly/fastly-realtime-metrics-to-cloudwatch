@@ -239,9 +239,9 @@ EOT
         height = 6
         properties = {
           metrics = [
-            ["Fastly/RealTime", "EdgeRequests", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "er", label = "Edge Requests" }],
-            ["Fastly/RealTime", "EdgeHitRequests", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "ehr", label = "Edge Hit Requests" }],
-            ["Fastly/RealTime", "EdgeMissRequests", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "emr", label = "Edge Miss Requests" }]
+            ["Fastly/RealTime", "Edge_requests", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "er", label = "Edge Requests" }],
+            ["Fastly/RealTime", "Edge_hit_requests", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "ehr", label = "Edge Hit Requests" }],
+            ["Fastly/RealTime", "Edge_miss_requests", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "emr", label = "Edge Miss Requests" }]
           ]
           view    = "timeSeries"
           stacked = false
@@ -259,8 +259,8 @@ EOT
         height = 6
         properties = {
           metrics = [
-            ["Fastly/RealTime", "ShieldFetches", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "sf", label = "Shield Fetches" }],
-            ["Fastly/RealTime", "ShieldHitRequests", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "shr", label = "Shield Hit Requests" }]
+            ["Fastly/RealTime", "Shield_fetches", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "sf", label = "Shield Fetches" }],
+            ["Fastly/RealTime", "Shield_hit_requests", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "shr", label = "Shield Hit Requests" }]
           ]
           view    = "timeSeries"
           stacked = false
@@ -278,8 +278,8 @@ EOT
         height = 6
         properties = {
           metrics = [
-            ["Fastly/RealTime", "DdosProtectionRequestsDetectCount", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "ddosd", label = "DDoS Detects" }],
-            ["Fastly/RealTime", "DdosProtectionRequestsMitigateCount", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "ddosm", label = "DDoS Mitigates" }]
+            ["Fastly/RealTime", "Ddos_protection_requests_detect_count", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "ddosd", label = "DDoS Detects" }],
+            ["Fastly/RealTime", "Ddos_protection_requests_mitigate_count", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "ddosm", label = "DDoS Mitigates" }]
           ]
           view    = "timeSeries"
           stacked = false
