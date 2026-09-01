@@ -22,7 +22,7 @@ resource "aws_sns_topic_subscription" "email_alerts" {
 # Alarm: High Edge 5xx Error Rate (> 5% of traffic for 3 minutes)
 # -----------------------------------------------------------------------------
 resource "aws_cloudwatch_metric_alarm" "high_5xx_rate" {
-  for_each = var.enable_alarms_edge ? toset(local.service_ids) : toset([])
+  for_each = var.enable_alarms_edge && contains(keys(local.edge_metrics), "status_5xx") && contains(keys(local.edge_metrics), "requests") ? toset(local.service_ids) : toset([])
 
   alarm_name          = "Fastly-Edge-5xx-Spike-${each.key}"
   comparison_operator = "GreaterThanThreshold"
@@ -44,7 +44,7 @@ resource "aws_cloudwatch_metric_alarm" "high_5xx_rate" {
   metric_query {
     id = "m1"
     metric {
-      metric_name = "Requests"
+      metric_name = lookup(local.edge_metrics, "requests", "")
       namespace   = "Fastly/RealTime"
       period      = 60
       stat        = "Sum"
@@ -58,7 +58,7 @@ resource "aws_cloudwatch_metric_alarm" "high_5xx_rate" {
   metric_query {
     id = "m2"
     metric {
-      metric_name = "Status5xx"
+      metric_name = lookup(local.edge_metrics, "status_5xx", "")
       namespace   = "Fastly/RealTime"
       period      = 60
       stat        = "Sum"
@@ -74,7 +74,7 @@ resource "aws_cloudwatch_metric_alarm" "high_5xx_rate" {
 # Alarm: Zero Traffic (No requests for 5 consecutive minutes)
 # -----------------------------------------------------------------------------
 resource "aws_cloudwatch_metric_alarm" "zero_traffic" {
-  for_each = var.enable_alarms_edge ? toset(local.service_ids) : toset([])
+  for_each = var.enable_alarms_edge && contains(keys(local.edge_metrics), "requests") ? toset(local.service_ids) : toset([])
 
   alarm_name          = "Fastly-Edge-Zero-Traffic-${each.key}"
   comparison_operator = "LessThanThreshold"
@@ -86,7 +86,7 @@ resource "aws_cloudwatch_metric_alarm" "zero_traffic" {
   alarm_actions = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : []
   # ok_actions    = var.alert_email != "" ? [aws_sns_topic.alerts[0].arn] : [] # Uncomment to receive recovery emails
 
-  metric_name = "Requests"
+  metric_name = lookup(local.edge_metrics, "requests", "")
   namespace   = "Fastly/RealTime"
   period      = 60
   statistic   = "Sum"
@@ -104,7 +104,7 @@ resource "aws_cloudwatch_metric_alarm" "zero_traffic" {
 # Alarm: High Origin 5xx Error Rate (> 10% of origin traffic for 3 minutes)
 # -----------------------------------------------------------------------------
 resource "aws_cloudwatch_metric_alarm" "high_origin_5xx_rate" {
-  for_each = var.enable_alarms_origin ? toset(local.service_ids) : toset([])
+  for_each = var.enable_alarms_origin && contains(keys(local.origin_metrics), "status_5xx") && contains(keys(local.origin_metrics), "responses") ? toset(local.service_ids) : toset([])
 
   alarm_name          = "Fastly-Origin-5xx-Spike-${each.key}"
   comparison_operator = "GreaterThanThreshold"
@@ -126,7 +126,7 @@ resource "aws_cloudwatch_metric_alarm" "high_origin_5xx_rate" {
   metric_query {
     id = "m1"
     metric {
-      metric_name = "Responses"
+      metric_name = lookup(local.origin_metrics, "responses", "")
       namespace   = "Fastly/OriginInspector"
       period      = 60
       stat        = "Sum"
@@ -140,7 +140,7 @@ resource "aws_cloudwatch_metric_alarm" "high_origin_5xx_rate" {
   metric_query {
     id = "m2"
     metric {
-      metric_name = "Status5xx"
+      metric_name = lookup(local.origin_metrics, "status_5xx", "")
       namespace   = "Fastly/OriginInspector"
       period      = 60
       stat        = "Sum"
@@ -156,7 +156,7 @@ resource "aws_cloudwatch_metric_alarm" "high_origin_5xx_rate" {
 # Alarm: Origin High Latency (Slow requests > 5 seconds)
 # -----------------------------------------------------------------------------
 resource "aws_cloudwatch_metric_alarm" "origin_latency_spike" {
-  for_each = var.enable_alarms_origin ? toset(local.service_ids) : toset([])
+  for_each = var.enable_alarms_origin && alltrue([for id in ["latency_5000_to_10000ms", "latency_10000_to_60000ms", "latency_60000ms"] : contains(keys(local.origin_metrics), id)]) ? toset(local.service_ids) : toset([])
 
   alarm_name          = "Fastly-Origin-High-Latency-${each.key}"
   comparison_operator = "GreaterThanThreshold"
@@ -178,7 +178,7 @@ resource "aws_cloudwatch_metric_alarm" "origin_latency_spike" {
   metric_query {
     id = "m1"
     metric {
-      metric_name = "Latency5000To10000ms"
+      metric_name = lookup(local.origin_metrics, "latency_5000_to_10000ms", "")
       namespace   = "Fastly/OriginInspector"
       period      = 60
       stat        = "Sum"
@@ -192,7 +192,7 @@ resource "aws_cloudwatch_metric_alarm" "origin_latency_spike" {
   metric_query {
     id = "m2"
     metric {
-      metric_name = "Latency10000To60000ms"
+      metric_name = lookup(local.origin_metrics, "latency_10000_to_60000ms", "")
       namespace   = "Fastly/OriginInspector"
       period      = 60
       stat        = "Sum"
@@ -206,7 +206,7 @@ resource "aws_cloudwatch_metric_alarm" "origin_latency_spike" {
   metric_query {
     id = "m3"
     metric {
-      metric_name = "Latency60000ms"
+      metric_name = lookup(local.origin_metrics, "latency_60000ms", "")
       namespace   = "Fastly/OriginInspector"
       period      = 60
       stat        = "Sum"
@@ -250,7 +250,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
 # ==============================================================================
 
 resource "aws_cloudwatch_metric_alarm" "traffic_anomaly" {
-  for_each = var.enable_alarms_anomaly ? toset(local.service_ids) : toset([])
+  for_each = var.enable_alarms_anomaly && contains(keys(local.edge_metrics), "requests") ? toset(local.service_ids) : toset([])
 
   alarm_name          = "Fastly-Edge-Traffic-Anomaly-${each.key}"
   comparison_operator = "LessThanLowerOrGreaterThanUpperThreshold"
@@ -273,7 +273,7 @@ resource "aws_cloudwatch_metric_alarm" "traffic_anomaly" {
     id          = "m1"
     return_data = true
     metric {
-      metric_name = "Requests"
+      metric_name = lookup(local.edge_metrics, "requests", "")
       namespace   = "Fastly/RealTime"
       period      = 60
       stat        = "Sum"

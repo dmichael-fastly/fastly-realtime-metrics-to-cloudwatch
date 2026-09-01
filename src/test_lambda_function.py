@@ -108,37 +108,51 @@ def test_load_metrics_config_reads_extra_sections_from_ini(tmp_path, monkeypatch
     assert config["edge"]["metrics"] == ["requests", "hits", "status_200", "shield_fetches"]
     assert config["origin"] == {"enabled": False, "metrics": []}
 
-def test_terraform_references_only_published_metric_names():
-    """Every CloudWatch metric name referenced in the dashboards and alarms must be
-    derivable from a metric id in metrics.ini via to_cloudwatch_name — this is what
-    keeps the charts from silently rendering empty."""
+def test_to_terraform_config_shape():
+    from src import metrics_config
+
+    config = metrics_config.load("metrics.ini.example")
+    tf = metrics_config.to_terraform_config(config)
+
+    assert tf["edge"]["enabled"] is True
+    assert tf["origin"]["enabled"] is False
+    assert tf["origin"]["metrics"] == {}  # disabled sections export no metrics
+    assert tf["edge"]["metrics"]["status_5xx"] == "Status5xx"
+    # Every exported name must be exactly what the Lambda publishes
+    for metric_id, name in tf["edge"]["metrics"].items():
+        assert name == metrics_config.to_cloudwatch_name(metric_id)
+
+def test_terraform_references_only_known_metric_ids():
+    """Terraform never hardcodes CloudWatch names anymore — it looks them up from the
+    generated metrics_config.json by Fastly metric id. This guard catches a typo'd or
+    stale id in the .tf files, which would otherwise silently drop a chart or alarm."""
     import re
     from pathlib import Path
 
     repo_root = Path(__file__).resolve().parent.parent
 
-    # Collect every metric id mentioned in metrics.ini, including commented-out
-    # example lines (widgets for those are gated off in Terraform, but the names
-    # still appear in the .tf source)
+    # The id universe: everything in the example ini, including commented-out
+    # example lines (Terraform gates those widgets off dynamically, but the ids
+    # in its widget definitions must still be real)
     ini_ids = set()
-    for line in (repo_root / "metrics.ini").read_text().splitlines():
+    for line in (repo_root / "metrics.ini.example").read_text().splitlines():
         match = re.match(r"^\s*[#;]?\s*metrics\w*\s*=\s*(.+)$", line)
         if match:
             ini_ids.update(m.strip() for m in match.group(1).split(",") if m.strip())
-    published = {lambda_function.to_cloudwatch_name(m) for m in ini_ids}
 
     referenced = {}
     for tf_name in ["dashboard.tf", "origin_dashboard.tf", "alarms.tf"]:
         content = (repo_root / "terraform" / tf_name).read_text()
-        names = re.findall(r'\["Fastly/(?:RealTime|OriginInspector)",\s*"([^"]+)"', content)
-        names += re.findall(r'namespace\s*=\s*"Fastly/(?:RealTime|OriginInspector)"[\s\S]{0,200}?metric_name\s*=\s*"([^"]+)"', content)
-        names += re.findall(r'metric_name\s*=\s*"([^"]+)"[\s\S]{0,200}?namespace\s*=\s*"Fastly/(?:RealTime|OriginInspector)"', content)
-        for name in names:
-            referenced.setdefault(name, []).append(tf_name)
+        ids = re.findall(r'local\.(?:edge|origin)_metrics\["([a-z0-9_]+)"\]', content)
+        ids += re.findall(r'contains\(keys\(local\.(?:edge|origin)_metrics\),\s*"([a-z0-9_]+)"\)', content)
+        for block in re.findall(r'ids\s*=\s*\[([^\]]*)\]', content):
+            ids += re.findall(r'"([a-z][a-z0-9_]*)"', block)
+        for metric_id in ids:
+            referenced.setdefault(metric_id, []).append(tf_name)
 
-    assert referenced, "expected to find metric references in the Terraform files"
-    unknown = {name: files for name, files in referenced.items() if name not in published}
-    assert not unknown, f"Terraform references metric names the Lambda never publishes: {unknown}"
+    assert referenced, "expected to find metric id references in the Terraform files"
+    unknown = {mid: files for mid, files in referenced.items() if mid not in ini_ids}
+    assert not unknown, f"Terraform references metric ids unknown to metrics.ini.example: {unknown}"
 
 def test_parse_and_push_metrics_standard_resolution(mock_cloudwatch):
     now = int(time.time())

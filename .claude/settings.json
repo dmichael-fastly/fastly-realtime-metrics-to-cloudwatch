@@ -9,7 +9,9 @@
       "Bash(git rm *)",
       "Bash(git commit -m 'chore: untrack metrics.ini, ship only metrics.ini.example *)",
       "Bash(git add *)",
-      "Bash(git commit -m 'chore: silence pytest warnings via pytest-asyncio upgrade and AsyncMock fixture *)"
+      "Bash(git commit -m 'chore: silence pytest warnings via pytest-asyncio upgrade and AsyncMock fixture *)",
+      "Bash(git commit -m 'feat: expand metric coverage for alerting and fix stale field names/counts *)",
+      "Bash(git commit -m 'refactor: single source of truth for metric names shared by Lambda and Terraform *)"
     ]
   }
 }

@@ -1,4 +1,86 @@
+locals {
+  origin_widget_defs = [
+    {
+      title   = "Total Origin Responses (Per Service)"
+      x       = 0, y = 0, width = 24, height = 6
+      stacked = false
+      ids     = ["responses"]
+      labels  = { responses = "Total Origin Responses" }
+    },
+    {
+      title   = "Origin HTTP Status Families (Per Service)"
+      x       = 0, y = 6, width = 12, height = 6
+      stacked = false
+      ids     = ["status_2xx", "status_3xx", "status_4xx", "status_5xx"]
+      labels = {
+        status_2xx = "2xx Success"
+        status_3xx = "3xx Redirection"
+        status_4xx = "4xx Client Error"
+        status_5xx = "5xx Server Error"
+      }
+    },
+    {
+      title   = "Origin Bandwidth (Bytes, Per Service)"
+      x       = 12, y = 6, width = 12, height = 6
+      stacked = false
+      ids     = ["bandwidth"]
+      labels  = {}
+    },
+    {
+      title   = "Origin Latency Histogram (Per Service)"
+      x       = 0, y = 12, width = 24, height = 8
+      stacked = true
+      ids = [
+        "latency_0_to_1ms", "latency_1_to_5ms", "latency_5_to_10ms", "latency_10_to_50ms",
+        "latency_50_to_100ms", "latency_100_to_250ms", "latency_250_to_500ms", "latency_500_to_1000ms",
+        "latency_1000_to_5000ms", "latency_5000_to_10000ms", "latency_10000_to_60000ms", "latency_60000ms"
+      ]
+      labels = {
+        latency_0_to_1ms         = "0-1ms"
+        latency_1_to_5ms         = "1-5ms"
+        latency_5_to_10ms        = "5-10ms"
+        latency_10_to_50ms       = "10-50ms"
+        latency_50_to_100ms      = "50-100ms"
+        latency_100_to_250ms     = "100-250ms"
+        latency_250_to_500ms     = "250-500ms"
+        latency_500_to_1000ms    = "500-1000ms"
+        latency_1000_to_5000ms   = "1s-5s"
+        latency_5000_to_10000ms  = "5s-10s"
+        latency_10000_to_60000ms = "10s-60s"
+        latency_60000ms          = "60s+"
+      }
+    },
+  ]
+
+  origin_widgets = [
+    for w in local.origin_widget_defs : {
+      type   = "metric"
+      x      = w.x
+      y      = w.y
+      width  = w.width
+      height = w.height
+      properties = {
+        metrics = [
+          for id in w.ids : concat(
+            ["Fastly/OriginInspector", local.origin_metrics[id], "FastlyServiceId", "$${ServiceId}"],
+            [{ stat = "Sum", label = "${lookup(w.labels, id, local.origin_metrics[id])} ($${PROP(\"FastlyServiceId\")})" }]
+          ) if contains(keys(local.origin_metrics), id)
+        ]
+        view    = "timeSeries"
+        stacked = w.stacked
+        region  = var.aws_region
+        title   = w.title
+        period  = 60
+      }
+    } if length([for id in w.ids : id if contains(keys(local.origin_metrics), id)]) > 0
+  ]
+}
+
 resource "aws_cloudwatch_dashboard" "fastly_origin_metrics" {
+  # CloudWatch rejects a dashboard with zero widgets, so skip it entirely
+  # when origin metrics are disabled
+  count = length(local.origin_widgets) > 0 ? 1 : 0
+
   dashboard_name = "Fastly-Origin-Metrics"
 
   dashboard_body = jsonencode({
@@ -13,90 +95,6 @@ resource "aws_cloudwatch_dashboard" "fastly_origin_metrics" {
         values    = [for id, name in local.service_map : { label = name, value = id }]
       }
     ]
-    widgets = flatten([
-      local.origin_resp ? [{
-        type   = "metric"
-        x      = 0
-        y      = 0
-        width  = 24
-        height = 6
-        properties = {
-          metrics = [
-            ["Fastly/OriginInspector", "Responses", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "origin_resp", label = "Total Origin Responses ($${PROP(\"FastlyServiceId\")})" }]
-          ]
-          view    = "timeSeries"
-          stacked = false
-          region  = var.aws_region
-          title   = "Total Origin Responses (Per Service)"
-          period  = 60
-        }
-      }] : [],
-      local.origin_status ? [{
-        type   = "metric"
-        x      = 0
-        y      = 6
-        width  = 12
-        height = 6
-        properties = {
-          metrics = [
-            ["Fastly/OriginInspector", "Status2xx", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "o2xx", label = "2xx Success ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/OriginInspector", "Status3xx", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "o3xx", label = "3xx Redirection ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/OriginInspector", "Status4xx", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "o4xx", label = "4xx Client Error ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/OriginInspector", "Status5xx", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "o5xx", label = "5xx Server Error ($${PROP(\"FastlyServiceId\")})" }]
-          ]
-          view    = "timeSeries"
-          stacked = false
-          region  = var.aws_region
-          title   = "Origin HTTP Status Families (Per Service)"
-          period  = 60
-        }
-      }] : [],
-      local.origin_bw ? [{
-        type   = "metric"
-        x      = 12
-        y      = 6
-        width  = 12
-        height = 6
-        properties = {
-          metrics = [
-            ["Fastly/OriginInspector", "Bandwidth", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "obw", label = "Bandwidth ($${PROP(\"FastlyServiceId\")})" }],
-
-          ]
-          view    = "timeSeries"
-          stacked = false
-          region  = var.aws_region
-          title   = "Origin Bandwidth (Bytes, Per Service)"
-          period  = 60
-        }
-      }] : [],
-      local.origin_latency ? [{
-        type   = "metric"
-        x      = 0
-        y      = 12
-        width  = 24
-        height = 8
-        properties = {
-          metrics = [
-            ["Fastly/OriginInspector", "Latency0To1ms", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "l0", label = "0-1ms ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/OriginInspector", "Latency1To5ms", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "l1", label = "1-5ms ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/OriginInspector", "Latency5To10ms", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "l2", label = "5-10ms ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/OriginInspector", "Latency10To50ms", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "l3", label = "10-50ms ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/OriginInspector", "Latency50To100ms", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "l4", label = "50-100ms ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/OriginInspector", "Latency100To250ms", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "l5", label = "100-250ms ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/OriginInspector", "Latency250To500ms", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "l6", label = "250-500ms ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/OriginInspector", "Latency500To1000ms", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "l7", label = "500-1000ms ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/OriginInspector", "Latency1000To5000ms", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "l8", label = "1s-5s ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/OriginInspector", "Latency5000To10000ms", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "l9", label = "5s-10s ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/OriginInspector", "Latency10000To60000ms", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "l10", label = "10s-60s ($${PROP(\"FastlyServiceId\")})" }],
-            ["Fastly/OriginInspector", "Latency60000ms", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "l11", label = "60s+ ($${PROP(\"FastlyServiceId\")})" }]
-          ]
-          view    = "timeSeries"
-          stacked = true
-          region  = var.aws_region
-          title   = "Origin Latency Histogram (Per Service)"
-          period  = 60
-        }
-      }] : [],
-    ])
+    widgets = local.origin_widgets
   })
 }

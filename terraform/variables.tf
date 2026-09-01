@@ -69,27 +69,13 @@ variable "log_retention_days" {
 
 
 locals {
-  # Only consider uncommented lines, so a commented-out metric doesn't render an empty widget
-  metrics_ini = join("\n", [
-    for line in split("\n", file("${path.module}/../metrics.ini")) : line
-    if !startswith(trimspace(line), "#") && !startswith(trimspace(line), ";")
-  ])
-  edge_reqs      = length(regexall("requests", local.metrics_ini)) > 0
-  edge_hits      = length(regexall("hits", local.metrics_ini)) > 0
-  edge_misses    = length(regexall("misses", local.metrics_ini)) > 0
-  edge_errors    = length(regexall("errors", local.metrics_ini)) > 0
-  edge_bandwidth = length(regexall("bandwidth", local.metrics_ini)) > 0
-  edge_status    = length(regexall("status_2xx", local.metrics_ini)) > 0
-  edge_4xx       = length(regexall("status_400", local.metrics_ini)) > 0
-  edge_5xx       = length(regexall("status_500", local.metrics_ini)) > 0
-  edge_compute   = length(regexall("compute_request_time_ms", local.metrics_ini)) > 0
+  # Generated from metrics.ini by scripts/export_config.py (deploy.sh runs it
+  # automatically). Maps each tracked Fastly metric id to the exact CloudWatch
+  # name the Lambda publishes, so dashboards and alarms cannot drift.
+  metrics_config = jsondecode(file("${path.module}/metrics_config.json"))
 
-  origin_resp    = length(regexall("responses", local.metrics_ini)) > 0
-  origin_bw      = length(regexall("bandwidth", local.metrics_ini)) > 0
-  origin_status  = length(regexall("status_2xx", local.metrics_ini)) > 0
-  origin_latency = length(regexall("latency_0_to_1ms", local.metrics_ini)) > 0
-
-  edge_volume   = length(regexall("edge_requests", local.metrics_ini)) > 0
-  edge_shield   = length(regexall("shield_fetches", local.metrics_ini)) > 0
-  edge_security = length(regexall("ddos_protection_requests_detect_count", local.metrics_ini)) > 0
+  # tomap() matters: jsondecode yields object types, and Terraform rejects
+  # object indexing statically even inside resources whose for_each is empty
+  edge_metrics   = local.metrics_config.edge.enabled ? tomap(local.metrics_config.edge.metrics) : tomap({})
+  origin_metrics = local.metrics_config.origin.enabled ? tomap(local.metrics_config.origin.metrics) : tomap({})
 }

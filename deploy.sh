@@ -13,8 +13,8 @@ fi
 echo "📦 Packaging Python Lambda function (Linux ARM64)..."
 rm -rf package lambda.zip
 mkdir -p package
-pip install --platform manylinux2014_aarch64 --target=package/ --implementation cp --python-version 3.12 --only-binary=:all: --upgrade -r src/requirements.txt > /dev/null 2>&1
-cp src/lambda_function.py package/
+pip install --platform manylinux2014_aarch64 --target=package/ --implementation cp --python-version 3.12 --only-binary=:all: --upgrade -r src/requirements.txt > /dev/null
+cp src/lambda_function.py src/metrics_config.py package/
 if [ -f "metrics.ini" ]; then
     cp metrics.ini package/
 elif [ -f "metrics.ini.example" ]; then
@@ -33,7 +33,11 @@ if [ "$1" = "-y" ] || [ "$1" = "--auto-approve" ]; then
     echo "⚡ Auto-approve mode enabled."
 fi
 
-# 3. Run Terraform
+# 3. Generate the metric name map Terraform builds dashboards/alarms from
+echo "🗺️  Exporting metric configuration for Terraform..."
+python3 scripts/export_config.py
+
+# 4. Run Terraform
 echo "🏗️  Running Terraform..."
 cd terraform
 terraform init
