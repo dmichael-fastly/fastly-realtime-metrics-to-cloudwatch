@@ -230,6 +230,64 @@ EOT
           view   = "table"
         }
       }] : [],
+
+      local.edge_volume ? [{
+        type   = "metric"
+        x      = 0
+        y      = 30
+        width  = 12
+        height = 6
+        properties = {
+          metrics = [
+            ["Fastly/RealTime", "EdgeRequests", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "er", label = "Edge Requests" }],
+            ["Fastly/RealTime", "EdgeHitRequests", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "ehr", label = "Edge Hit Requests" }],
+            ["Fastly/RealTime", "EdgeMissRequests", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "emr", label = "Edge Miss Requests" }]
+          ]
+          view    = "timeSeries"
+          stacked = false
+          region  = var.aws_region
+          title   = "Edge Traffic Volume"
+          period  = 60
+        }
+      }] : [],
+
+      local.edge_shield ? [{
+        type   = "metric"
+        x      = 12
+        y      = 30
+        width  = 12
+        height = 6
+        properties = {
+          metrics = [
+            ["Fastly/RealTime", "ShieldFetches", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "sf", label = "Shield Fetches" }],
+            ["Fastly/RealTime", "ShieldHitRequests", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "shr", label = "Shield Hit Requests" }]
+          ]
+          view    = "timeSeries"
+          stacked = false
+          region  = var.aws_region
+          title   = "Origin Shielding"
+          period  = 60
+        }
+      }] : [],
+
+      local.edge_security ? [{
+        type   = "metric"
+        x      = 0
+        y      = 36
+        width  = 24
+        height = 6
+        properties = {
+          metrics = [
+            ["Fastly/RealTime", "DdosProtectionRequestsDetectCount", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "ddosd", label = "DDoS Detects" }],
+            ["Fastly/RealTime", "DdosProtectionRequestsMitigateCount", "FastlyServiceId", "$${ServiceId}", { stat = "Sum", id = "ddosm", label = "DDoS Mitigates" }]
+          ]
+          view    = "timeSeries"
+          stacked = false
+          region  = var.aws_region
+          title   = "Security & DDoS Protection"
+          period  = 60
+        }
+      }] : [],
     ])
   })
 }

@@ -85,3 +85,9 @@ locals {
   origin_status  = length(regexall("status_2xx", local.metrics_ini)) > 0
   origin_latency = length(regexall("latency_0_to_1ms", local.metrics_ini)) > 0
 }
+
+locals {
+  edge_volume   = length(regexall("edge_requests", file("${path.module}/../metrics.ini"))) > 0
+  edge_shield   = length(regexall("shield_fetches", file("${path.module}/../metrics.ini"))) > 0
+  edge_security = length(regexall("ddos_protection_requests_detect_count", file("${path.module}/../metrics.ini"))) > 0
+}
