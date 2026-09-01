@@ -58,7 +58,7 @@ resource "aws_cloudwatch_metric_alarm" "high_5xx_rate" {
   metric_query {
     id = "m2"
     metric {
-      metric_name = "Status_5xx"
+      metric_name = "Status5xx"
       namespace   = "Fastly/RealTime"
       period      = 60
       stat        = "Sum"
@@ -140,7 +140,7 @@ resource "aws_cloudwatch_metric_alarm" "high_origin_5xx_rate" {
   metric_query {
     id = "m2"
     metric {
-      metric_name = "Status_5xx"
+      metric_name = "Status5xx"
       namespace   = "Fastly/OriginInspector"
       period      = 60
       stat        = "Sum"
@@ -178,7 +178,7 @@ resource "aws_cloudwatch_metric_alarm" "origin_latency_spike" {
   metric_query {
     id = "m1"
     metric {
-      metric_name = "Latency_5000_to_10000ms"
+      metric_name = "Latency5000To10000ms"
       namespace   = "Fastly/OriginInspector"
       period      = 60
       stat        = "Sum"
@@ -192,7 +192,7 @@ resource "aws_cloudwatch_metric_alarm" "origin_latency_spike" {
   metric_query {
     id = "m2"
     metric {
-      metric_name = "Latency_10000_to_60000ms"
+      metric_name = "Latency10000To60000ms"
       namespace   = "Fastly/OriginInspector"
       period      = 60
       stat        = "Sum"
@@ -206,7 +206,7 @@ resource "aws_cloudwatch_metric_alarm" "origin_latency_spike" {
   metric_query {
     id = "m3"
     metric {
-      metric_name = "Latency_60000ms"
+      metric_name = "Latency60000ms"
       namespace   = "Fastly/OriginInspector"
       period      = 60
       stat        = "Sum"

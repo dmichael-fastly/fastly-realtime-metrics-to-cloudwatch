@@ -24,6 +24,28 @@ _fastly_api_token = None
 _last_seen_timestamps = {}
 _metrics_config = None
 
+def to_cloudwatch_name(metric_name: str) -> str:
+    """Convert a Fastly snake_case metric id to the PascalCase name used in CloudWatch."""
+    return ''.join(x.capitalize() for x in metric_name.lower().split('_'))
+
+def get_metric_unit(metric_name: str) -> str:
+    if 'bytes' in metric_name or metric_name == 'bandwidth':
+        return 'Bytes'
+    if metric_name.endswith('_ms'):
+        return 'Milliseconds'
+    if metric_name.endswith('_time'):
+        return 'Seconds'
+    return 'Count'
+
+def parse_metrics_list(config: configparser.ConfigParser, section: str) -> List[str]:
+    """Collect metric ids from the `metrics` key and every `metrics_extra*` key of a section, deduplicated in order."""
+    metrics = []
+    if config.has_section(section):
+        for key, value in config.items(section):
+            if key == 'metrics' or key.startswith('metrics_extra'):
+                metrics.extend(m.strip() for m in value.split(',') if m.strip())
+    return list(dict.fromkeys(metrics))
+
 def load_metrics_config() -> Dict[str, Any]:
     """Load and parse the metrics.ini configuration file."""
     global _metrics_config
@@ -46,21 +68,14 @@ def load_metrics_config() -> Dict[str, Any]:
     edge_enabled = config.getboolean('edge', 'enabled', fallback=True)
     
     origin_enabled = config.getboolean('origin', 'enabled', fallback=False)
-    edge_metrics = []
-    if edge_enabled:
-        edge_metrics.extend([m.strip() for m in config.get('edge', 'metrics', fallback='').split(',') if m.strip()])
-        edge_metrics.extend([m.strip() for m in config.get('edge', 'metrics_extra', fallback='').split(',') if m.strip()])
-        
-    
-    origin_metrics = []
-    if origin_enabled:
-        origin_metrics.extend([m.strip() for m in config.get('origin', 'metrics', fallback='').split(',') if m.strip()])
-        origin_metrics.extend([m.strip() for m in config.get('origin', 'metrics_extra', fallback='').split(',') if m.strip()])
+    edge_metrics = parse_metrics_list(config, 'edge') if edge_enabled else []
+    origin_metrics = parse_metrics_list(config, 'origin') if origin_enabled else []
 
     _metrics_config = {
         "edge": {"enabled": edge_enabled, "metrics": edge_metrics},
         "origin": {"enabled": origin_enabled, "metrics": origin_metrics}
     }
+    logger.info(f"Metrics config loaded: {len(edge_metrics)} edge and {len(origin_metrics)} origin metrics tracked (this drives CloudWatch custom metric costs).")
     return _metrics_config
 
 def get_api_token(secret_arn: str) -> str:
@@ -167,11 +182,11 @@ def parse_and_push_metrics(service_data: List[Dict[str, Any]], enable_hrm: bool 
                 for metric_name in metrics_to_track:
                     metric_data.append({
                             '_namespace': namespace,
-                            'MetricName': ''.join(x.capitalize() for x in metric_name.lower().split('_')),
+                            'MetricName': to_cloudwatch_name(metric_name),
                             'Dimensions': [{'Name': 'FastlyServiceId', 'Value': service_id}],
                             'Timestamp': recorded_ts,
                             'Value': aggregated.get(metric_name, 0.0),
-                            'Unit': 'Count' if 'bytes' not in metric_name and metric_name != 'bandwidth' else 'Bytes',
+                            'Unit': get_metric_unit(metric_name),
                             'StorageResolution': 1
                         })
         else:
@@ -187,11 +202,11 @@ def parse_and_push_metrics(service_data: List[Dict[str, Any]], enable_hrm: bool 
             for metric_name, value in summed_metrics.items():
                 metric_data.append({
                         '_namespace': namespace,
-                        'MetricName': ''.join(x.capitalize() for x in metric_name.lower().split('_')),
+                        'MetricName': to_cloudwatch_name(metric_name),
                         'Dimensions': [{'Name': 'FastlyServiceId', 'Value': service_id}],
                         'Timestamp': recorded_ts,
                         'Value': value,
-                        'Unit': 'Count' if 'bytes' not in metric_name and metric_name != 'bandwidth' else 'Bytes',
+                        'Unit': get_metric_unit(metric_name),
                         'StorageResolution': 60
                     })
         
@@ -222,7 +237,7 @@ async def polling_loop(service_ids: List[str], api_token: str, poll_interval: in
     start_time = time.time()
     metrics_config = load_metrics_config()
     
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
         while True:
             current_time = time.time()
             elapsed = current_time - start_time

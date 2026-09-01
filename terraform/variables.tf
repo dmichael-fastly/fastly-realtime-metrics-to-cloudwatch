@@ -69,7 +69,11 @@ variable "log_retention_days" {
 
 
 locals {
-  metrics_ini    = file("${path.module}/../metrics.ini")
+  # Only consider uncommented lines, so a commented-out metric doesn't render an empty widget
+  metrics_ini = join("\n", [
+    for line in split("\n", file("${path.module}/../metrics.ini")) : line
+    if !startswith(trimspace(line), "#") && !startswith(trimspace(line), ";")
+  ])
   edge_reqs      = length(regexall("requests", local.metrics_ini)) > 0
   edge_hits      = length(regexall("hits", local.metrics_ini)) > 0
   edge_misses    = length(regexall("misses", local.metrics_ini)) > 0
@@ -84,10 +88,8 @@ locals {
   origin_bw      = length(regexall("bandwidth", local.metrics_ini)) > 0
   origin_status  = length(regexall("status_2xx", local.metrics_ini)) > 0
   origin_latency = length(regexall("latency_0_to_1ms", local.metrics_ini)) > 0
-}
 
-locals {
-  edge_volume   = length(regexall("edge_requests", file("${path.module}/../metrics.ini"))) > 0
-  edge_shield   = length(regexall("shield_fetches", file("${path.module}/../metrics.ini"))) > 0
-  edge_security = length(regexall("ddos_protection_requests_detect_count", file("${path.module}/../metrics.ini"))) > 0
+  edge_volume   = length(regexall("edge_requests", local.metrics_ini)) > 0
+  edge_shield   = length(regexall("shield_fetches", local.metrics_ini)) > 0
+  edge_security = length(regexall("ddos_protection_requests_detect_count", local.metrics_ini)) > 0
 }
