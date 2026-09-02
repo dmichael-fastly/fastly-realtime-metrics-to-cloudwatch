@@ -1,0 +1,50 @@
+# ==============================================================================
+# FASTLY CREDENTIALS & SERVICES
+# ==============================================================================
+
+# Your Fastly API key with permissions to read Real-Time Analytics
+fastly_api_key = "YOUR_FASTLY_API_TOKEN"
+
+# Comma-separated list of Fastly Service IDs to monitor (max 10)
+fastly_service_ids = "service_id_1,service_id_2"
+
+# ==============================================================================
+# POLLING & METRICS CONFIGURATION
+# ==============================================================================
+
+# How often the Lambda should poll Fastly within its 60-second window (e.g., 5, 10, 20, 30, 60)
+poll_interval_seconds = 10
+
+# Enable 1-second storage resolution in CloudWatch. 
+# Warning: can significantly increase CloudWatch Alarm costs if used.
+enable_high_resolution_metrics = false
+# Number of days to keep CloudWatch Logs for the Lambda function (default: 7)
+log_retention_days = 7
+
+
+# ==============================================================================
+# ALERTS & ALARMS CONFIGURATION
+# ==============================================================================
+
+# Email address to send CloudWatch Alarm notifications to. 
+# Leave blank ("") to disable email alerts.
+alert_email = "alerts@yourcompany.com"
+
+# Enable default CloudWatch Alarms for Edge Metrics (5xx Spikes, Zero Traffic)
+enable_alarms_edge = true
+
+# Enable default CloudWatch Alarms for Origin Metrics (Latency Spikes, Error Spikes)
+enable_alarms_origin = true
+
+# Enable Machine Learning Alarms for Traffic Anomalies
+enable_alarms_anomaly = true
+
+# Enable System Health Alarms (Lambda execution failures)
+enable_alarms_system = true
+
+# ==============================================================================
+# AWS CONFIGURATION
+# ==============================================================================
+
+# The AWS region to deploy into
+aws_region = "us-east-1"
