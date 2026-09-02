@@ -47,16 +47,15 @@ AWS costs are driven by several factors:
 **2. CloudWatch `PutMetricData` API Requests:**
 * By default, the Lambda batches data and pushes it every 5 seconds.
 * `PutMetricData` costs $0.01 per 1,000 requests.
-* 1 request every 5 seconds = 518,400 requests / month.
-* Total API Cost: **~$5.18 / month**.
-*(Note: If you track multiple Fastly services, they are batched together in the same API request, so this API cost is fixed and does NOT multiply per service!)*
+* Edge and Origin metrics are pushed to separate CloudWatch namespaces (`Fastly/RealTime` and `Fastly/OriginInspector`), so each requires its own API call. With only Edge metrics enabled: 1 request every 5 seconds = 518,400 requests / month = **~$5.18 / month**. With Origin metrics also enabled (the default `metrics.ini.example` has Origin disabled, but many users turn it on): 2 requests every 5 seconds = **~$10.37 / month**.
+*(Note: If you track multiple Fastly services, all services' data for a namespace batches into the same API request, so this API cost is fixed per namespace and does NOT multiply per service!)*
 
 **3. CloudWatch Alarms:**
 * Cost: $0.10 per standard resolution alarm / month.
-* By default, this project deploys 4 alarms **per Fastly Service** (Edge 5xx Spikes, Edge Zero Traffic, Origin 5xx Spikes, Origin Latency Spikes).
-* Cost for 1 Service (4 alarms): **$0.40 / month**.
-* Cost for 5 Services (20 alarms): **$2.00 / month**.
-* Cost for 10 Services (40 alarms): **$4.00 / month**.
+* By default, this project deploys 5 alarms **per Fastly Service** (Edge 5xx Spikes, Edge Zero Traffic, Edge Traffic Anomaly Detection, Origin 5xx Spikes, Origin Latency Spikes), plus 1 global Lambda-errors system alarm.
+* Cost for 1 Service (5 alarms + 1 system alarm): **$0.60 / month**.
+* Cost for 5 Services (25 alarms + 1 system alarm): **$2.60 / month**.
+* Cost for 10 Services (50 alarms + 1 system alarm): **$5.10 / month**.
 *(Note: You can easily toggle these alarms off or add your own in `terraform/variables.tf` and `terraform/alarms.tf`)*
 
 **4. Lambda Compute Time:**
@@ -74,21 +73,21 @@ If you specifically want to see sub-minute granularity drawn on your CloudWatch 
 
 ### Estimated Monthly Costs by Polling Interval
 
-*The following estimates cover the polling-driven costs (API requests + Lambda compute); metric storage scales separately with your `metrics.ini` selection as shown above. They assume you are **not** using the AWS Free Tier. If your account qualifies for the Free Tier, your Lambda compute and initial CloudWatch requests will be largely free, bringing these costs down significantly.*
+*The following estimates cover the polling-driven costs (API requests + Lambda compute) with Origin metrics disabled (the shipped default) — enabling Origin metrics roughly doubles the `PutMetricData` API column, since it pushes to a second namespace. Metric storage scales separately with your `metrics.ini` selection as shown above. These estimates assume you are **not** using the AWS Free Tier. If your account qualifies for the Free Tier, your Lambda compute and initial CloudWatch requests will be largely free, bringing these costs down significantly.*
 
-| Polling Interval | `PutMetricData` API Costs | Lambda Compute (256MB) | Base Costs (Metrics, Alarms, Logs) | **Estimated Total Cost / Month** |
+| Polling Interval | `PutMetricData` API Costs | Lambda Compute (256MB) | Base Costs (55 Edge Metrics + Alarms + Logs) | **Estimated Total Cost / Month** |
 | :--- | :--- | :--- | :--- | :--- |
-| **1 second** | ~$25.92 / mo | ~$8.64 (ARM64 Continuous) | ~$3.00 | **~$37.56 / month** |
-| **5 seconds** | ~$5.18 / mo | ~$8.64 (ARM64 Continuous) | ~$3.00 | **~$16.82 / month** |
-| **10 seconds** | ~$2.59 / mo | ~$8.64 (ARM64 Continuous) | ~$3.00 | **~$14.23 / month** |
-| **20 seconds** | ~$1.30 / mo | ~$8.64 (ARM64 Continuous) | ~$3.00 | **~$12.94 / month** |
-| **30 seconds** | ~$0.86 / mo | ~$8.64 (ARM64 Continuous) | ~$3.00 | **~$12.50 / month** |
-| **60 seconds (Default)** | ~$0.43 / mo | ~$0.28 (ARM64 Batched) | ~$3.00 | **~$3.71 / month** |
+| **1 second** | ~$25.92 / mo | ~$8.64 (ARM64 Continuous) | ~$17.10 | **~$51.66 / month** |
+| **5 seconds** | ~$5.18 / mo | ~$8.64 (ARM64 Continuous) | ~$17.10 | **~$30.92 / month** |
+| **10 seconds** | ~$2.59 / mo | ~$8.64 (ARM64 Continuous) | ~$17.10 | **~$28.33 / month** |
+| **20 seconds** | ~$1.30 / mo | ~$8.64 (ARM64 Continuous) | ~$17.10 | **~$27.04 / month** |
+| **30 seconds** | ~$0.86 / mo | ~$8.64 (ARM64 Continuous) | ~$17.10 | **~$26.60 / month** |
+| **60 seconds (Default)** | ~$0.43 / mo | ~$0.28 (ARM64 Batched) | ~$17.10 | **~$17.81 / month** |
 
 **Cost Insights:**
-*   **The 60-second drop-off:** Polling at 60 seconds is incredibly cheap (~$3.71/mo) because the Lambda function no longer has to run continuously; it wakes up, runs once, and immediately goes to sleep.
-*   **The 1-second premium:** Polling at 1-second intervals generates a massive amount of CloudWatch API requests, which becomes the primary cost driver (~$35/mo).
-*   **The sweet spot:** A 10-to-20 second interval provides excellent near real-time resolution for a flat ~$10-12/month.
+*   **The 60-second drop-off:** Polling at 60 seconds is by far the cheapest polling-driven cost (~$0.71/mo combined) because the Lambda function no longer has to run continuously; it wakes up, runs once, and immediately goes to sleep. The bulk of the table's total is your metric storage selection, not polling.
+*   **The 1-second premium:** Polling at 1-second intervals generates a massive amount of CloudWatch API requests, which becomes the dominant polling-driven cost (~$34.56/mo of the ~$51.66/mo total).
+*   **The sweet spot:** A 10-to-20 second interval keeps the polling-driven cost to a couple of dollars a month, so the total is dominated by however many metrics you choose to store — tune `metrics.ini` for cost, not the polling interval.
 
 ## Getting Started
 
