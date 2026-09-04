@@ -7,10 +7,10 @@ This project deploys AWS infrastructure to fetch Fastly real-time metrics and in
 The project automatically provisions rich CloudWatch dashboards for both your Edge caching layer and your Origin connections, tracking the exact metrics you configure in your `metrics.ini`.
 
 ### Edge Dashboard
-![Edge Dashboard](./edge_dashboard.png)
+![Edge Dashboard](./edge_metrics_dashboard.png)
 
 ### Origin Dashboard
-![Origin Dashboard](./origin_dashboard.png)
+![Origin Dashboard](./origin_metrics_dashboard.png)
 
 ## Architecture
 

@@ -13,7 +13,10 @@
       "Bash(git commit -m 'feat: expand metric coverage for alerting and fix stale field names/counts *)",
       "Bash(git commit -m 'refactor: single source of truth for metric names shared by Lambda and Terraform *)",
       "Bash(git tag -a v1.0.0 11c5de2 -m 'v1.0.0: Initial release *)",
-      "Bash(gh repo *)"
+      "Bash(gh repo *)",
+      "Bash(git checkout *)",
+      "Bash(git cherry-pick *)",
+      "Bash(git stash *)"
     ]
   }
 }
