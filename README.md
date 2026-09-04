@@ -2,6 +2,16 @@
 
 This project deploys AWS infrastructure to fetch Fastly real-time metrics and ingest them into [AWS CloudWatch](https://aws.amazon.com/cloudwatch/). This allows you to leverage CloudWatch's powerful alerting, dashboarding, and analytics tools on your Fastly CDN data.
 
+## Dashboards
+
+The project automatically provisions rich CloudWatch dashboards for both your Edge caching layer and your Origin connections, tracking the exact metrics you configure in your `metrics.ini`.
+
+### Edge Dashboard
+![Edge Dashboard](./edge_dashboard.png)
+
+### Origin Dashboard
+![Origin Dashboard](./origin_dashboard.png)
+
 ## Architecture
 
 To meet the requirement of configurable, sub-minute data freshness (down to 1 second) while keeping costs extremely low, this project uses a serverless loop pattern:
